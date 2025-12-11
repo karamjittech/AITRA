@@ -1,0 +1,1342 @@
+For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.
+
+When using client-side hooks (useState and useEffect) in a component that's being treated as a Server Component by Next.js, always add the "use client" directive at the top of the file.
+
+Do not write code that will trigger this error: "Warning: Extra attributes from the server: %s%s""class,style"
+
+By default, this template supports JSX syntax with Tailwind CSS classes, the shadcn/ui library, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.
+
+Use icons from lucide-react for logos.
+---
+***
+
+## **SECTION 1: PROJECT OVERVIEW**
+
+### **What Problem Does It Solve?**
+AI search engines (Google AI Overviews, ChatGPT, Gemini, Claude, Perplexity) are changing how people find information. Most SEO tools still focus on traditional Google rankings, but **citation in AI answers = visibility**. This project fills that gap. so basically, Build SEO optimization tool (like ClickRank) that analyzes content for AI search visibility (Google AI Overviews, ChatGPT, Gemini citations). Analyze websites for "AI Search Readiness" based on local HTML signals (Schema, Structure, E-E-A-T), utilizing Jina.ai for scraping and Gemini for generating fixes.
+
+### **What Is It?**
+An AI-powered SEO optimization tool that:
+1. Monitors when your website gets cited in AI search results
+2. Analyzes content structure/metadata for AI readiness
+3. Generates one-click fixes (schema markup, optimization code)
+4. Tracks competitor citations and competitive positioning
+
+### **Market Opportunity**
+- ClickRank.ai (reference tool) raised funding + 4.9★ rating on AppSumo
+- Zero-click searches rising (AI answers = no clicks to traditional results)
+- No existing tools comprehensively track AI citation visibility
+- $16-83/month market demand proven (Firecrawl, ClickRank pricing)
+
+***
+
+## **SECTION 2: TECH STACK (VERIFIED)**
+
+| Layer | Technology | Why This Choice | Cost |
+|-------|-----------|-----------------|------|
+| **Frontend** | Bolt.new + Next.js | AI-assisted development, React ecosystem | Free |
+| **Database** | Bolt Database
+| **Auth** | Bolt Database Auth | 10x better free tier than Clerk (50k vs 5k MAU) | Free |
+| **Serverless Functions** | Supabase Edge Functions (TypeScript) | Built-in, no Docker needed, global distribution | Free tier |
+| **Web Scraping** | Jina.ai Reader API | Free 10M tokens, pay-per-page, you control scope | Free + PAYG |
+| **AI Processing** | Gemini models/gemini-flash-latest | Sentiment analysis + schema generation |  |
+| **SERP Monitoring** | Google Search Console API | Free, official data | Free |
+State Management: Zustand (for global user state)
+Styling: Tailwind CSS (utility-first)
+Charts/Visualizations: Recharts (beautiful charts)
+HTTP Client: Axios (API communication)
+
+
+### **Critical Architecture Decisions**
+
+**NO LLM querying for scoring:** ClickRank doesn't query ChatGPT/Gemini APIs. Instead, it monitors SERP results and extracts citation patterns. Saves $$$, more reliable.
+
+**External Supabase:** Bolt.new internal DB is for prototyping only. External Supabase provides:
+- Persistent data across sessions
+- REST/GraphQL APIs for Edge Functions
+- Real-time subscriptions
+- Scheduled jobs via PostgreSQL cron
+- Data Source: Primary data comes from the Scrape; Secondary data comes from Google Search Console (via CSV upload for MVP).
+- Backend Logic: All logic runs in Supabase Edge Functions using TypeScript/Deno (NOT Python).
+
+
+### ** Target Customer:**
+
+- SEO agencies managing 5-20 client websites
+- Ecommerce brands with 50+ product pages
+- Content creators/blogs wanting AI search visibility
+- Marketing consultants offering AI SEO services
+
+## ** MVP: 3 CORE FEATURES ONLY**
+Feature 1: AI Visibility Dashboard (Core)
+What it does:
+- Checks if user's website content appears in outputs from ChatGPT, Claude, Perplexity, Google Gemini
+- Shows which AI models "see" their content
+- Simple metric: "You're visible to 3 of 4 AI models"
+
+- UI/UX Design:
+┌─────────────────────────────────────┐
+│  AI VISIBILITY CHECK                │
+├─────────────────────────────────────┤
+│                                     │
+│  ChatGPT        ✓ Visible          │
+│  Claude         ✗ Not Visible      │
+│  Perplexity     ✓ Visible          │
+│  Google Gemini  ✓ Visible          │
+│                                     │
+│  Overall Score: 75% AI Ready      │
+│                                     │
+│  [Get Recommendations]              │
+└─────────────────────────────────────┘
+
+Why this matters: Users said "I want to show my content in AI search" - this directly answers that need.
+
+## ** Feature 2: One-Click AI Optimization Fixes (Core)**
+What it does:
+- Analyze website for AI-specific optimization issues
+- Provide 3-5 SPECIFIC, actionable recommendations (not 100 SEO tips)
+- User can apply fixes with one click (generate schema, meta tags, structured data)
+
+AI-Specific Optimization Checks:
+- Schema Markup - Is your content properly marked up for AI parsing?
+- Meta Tags Optimization - Titles/descriptions optimized for AI understanding
+- Structured Data - JSON-LD for facts, entities, quotes
+- Content Clarity - Is content easy for AI to understand? (readability for LLMs)
+- Author Authority - E-E-A-T signals (Experience, Expertise, Authoritativeness, Trustworthiness)
+
+- UI/UX Design:
+┌──────────────────────────────────────┐
+│  QUICK FIXES                         │
+├──────────────────────────────────────┤
+│                                      │
+│  1️⃣ Add Author Bio Schema          │
+│     "This helps AI understand       │
+│      your expertise"                 │
+│     [Apply Fix] (1 click)            │
+│                                      │
+│  2️⃣ Improve Meta Description       │
+│     "Make it clearer for Claude"    │
+│     [Apply Fix] (1 click)            │
+│                                      │
+│  3️⃣ Add FAQ Schema Markup          │
+│     [Apply Fix] (1 click)            │
+│                                      │
+│  ✅ 8 issues fixed | 12 remaining   │
+└──────────────────────────────────────┘
+Why this works: Users love automation. "I am speechless at how easy it is." One-click beats complex multi-step processes.
+
+## ** Feature 3: AI Keywords Research Tool (Core)**
+What it does:
+- Find keywords that trigger AI model responses
+- Show "AI search volume" - how often AI models are asked about these topics
+- Recommend content that AI models are actively referencing
+
+UI/UX Design:
+┌──────────────────────────────────────┐
+│  AI KEYWORD OPPORTUNITIES           │
+├──────────────────────────────────────┤
+│                                      │
+│  Search: "sustainable packaging"    │
+│  [Search Button]                     │
+│                                      │
+│  📊 AI Search Interest: 8,432       │
+│  📈 Trend: ↑ Growing               │
+│  🎯 Competition: Low               │
+│  💡 Recommended Content:            │
+│     "How to choose sustainable..."  │
+│     "Benefits of eco-friendly..."   │
+│                                      │
+│  [Create Content Brief]             │
+│  [Add to Content Calendar]          │
+└──────────────────────────────────────┘
+Why it matters: Users want to find opportunities AI models are searching for, then create content around them.
+
+
+## **WHAT NOT TO INCLUDE IN MVP (Future versions)**
+❌ Keyword rank tracking (GSC already does this)
+❌ Backlink analysis (Too complex for MVP)
+❌ Competitor analysis (Out of scope)
+❌ Content automation/writing (Can add later)
+❌ Complex reporting/dashboards (Analysis paralysis)
+❌ Site crawling for 1000+ pages (MVP: 100 pages max)
+
+
+## ** SUPERIOR UI/UX PRINCIPLES FOR MVP**
+1. Progressive Disclosure (Show only what matters)
+- Don't show 50 metrics. Show 3 key metrics.
+- Hide advanced options behind "Advanced" toggle
+- New users see: "Is my site AI-ready?" Answer: Yes/No/Partial
+
+2. Color-Coded Actions
+🟢 GREEN = "You're good, no action needed"
+🟡 YELLOW = "Important, fix soon"
+🔴 RED = "Critical, fix now for AI visibility"
+
+3. Plain English, Not SEO Jargon
+❌ "Schema markup optimization for structured data"
+✅ "Add author information so AI knows who you are"
+❌ "Improve crawlability and indexation signals"
+✅ "Make your content easier for AI to find"
+
+
+4. One-Click Fixes Over Education
+- Users are busy. Give them fast solutions.
+- Include "Why this matters" in 1-2 sentences only
+- Button text: "Apply Fix" not "Learn more"
+
+5. Mobile-First Design
+- MVP users are often on mobile checking their sites quickly
+- Touch-friendly buttons (min 44x44px)
+- Vertical layout > tables/complex grids
+
+6. Onboarding in 60 Seconds
+1. Connect website (URL + verify domain)
+2. See AI visibility score
+3. Get 3-5 quick fixes
+4. Done!
+
+MARKET POSITIONING (For Your Clone)
+- Your Unique Angle: "AI SEO in 5 Minutes"
+  - ClickRank: Full-featured, complex, aimed at agencies
+  - Your Clone: Simple, fast, aimed at content creators & bloggers
+
+Differentiation:
+
+- "See which AI models read your content" (clear value prop)
+- "Fix AI visibility in one click" (easier than ClickRank)
+- "Mobile-optimized for on-the-go creators" (better UX)
+
+One-Click Optimization Fixes (AI LLM Rules)
+Each fix targets specific AI model preferences found in their official documentation:
+
+The 5 One-Click Fixes:
+- Author Authority - Add JSON-LD schema showing credentials
+- Content Structure - Auto-break paragraphs, add headers for AI parsing
+- Schema Markup - Generate JSON-LD for facts/entities
+- Meta Descriptions - Rewrite for AI understanding (not clicks)
+- Citation Clarity - Suggest optimal link placement
+
+Your system analyzes user's content → detects missing elements → auto-generates code users copy-paste into their website.
+
+## ** Pillar 1: Google Search Console Data as the Foundation**
+This is critical. Their entire platform is built on: "SEO AI Automation Tool Powered By Google Search Console Data"
+
+What they're doing:
+┌─────────────────────────────────────┐
+│  Google Search Console Integration  │
+├─────────────────────────────────────┤
+│                                     │
+│ User connects GSC → ClickRank gets: │
+│ ✓ Real search queries users enter   │
+│ ✓ Click impressions & CTR data      │
+│ ✓ Average position rankings         │
+│ ✓ Search console coverage           │
+│ ✓ Mobile vs desktop performance     │
+│                                     │
+│ This tells them: "Which keywords    │
+│ are already getting traffic"        │
+└─────────────────────────────────────┘
+
+Why this matters for you: You don't need to "check AI models" - you use GSC data to identify opportunities and optimize around them. GSC tells you what's working in Google, and AI models use similar signals.
+
+## **Pillar 2: Content Analysis (Not AI Model Querying)**
+they analyze the page itself for AI-friendliness signals:
+What they actually check:
+✓ Document structure & formatting (H1, H2, H3 hierarchy)
+✓ Language clarity (short sentences, active voice)
+✓ Entity and source recognition (schema markup)
+✓ Metadata presence (title, description, author)
+✓ Domain expertise indicators (E-E-A-T signals)
+✓ Content authority & trust signals
+✓ Open-source references (for LLaMA, Mistral)
+They download your page, parse it, analyze the HTML structure, and give you a score.
+
+## ** HOW THEY CHECK AI COMPATIBILITY (The Concrete Method) **
+Step 1: Local HTML Analysis
+
+User submits URL to AI Model Compatibility Tool
+           ↓
+ClickRank downloads the page
+           ↓
+Parses HTML structure
+           ↓
+Extracts:
+├─ Heading hierarchy (H1 count, H2/H3 coverage)
+├─ Paragraph length (short = AI friendly)
+├─ List usage (ordered/unordered)
+├─ Schema markup (JSON-LD present?)
+├─ Author info (byline, credentials)
+├─ Publication date & freshness
+├─ Internal link anchors
+├─ Image alt text quality
+├─ Citation depth (number of external links)
+└─ E-E-A-T signals (credentials, about page reference)
+
+Step 2: Scoring Against AI Preferences
+Each AI model has DIFFERENT preferences:
+
+ChatGPT Preferences:
+├─ Clear, conversational structure
+├─ Well-formatted lists
+├─ Strong heading hierarchy
+└─ Publication date signals
+
+Claude Preferences:
+├─ Nuanced, balanced arguments
+├─ Source citations
+├─ Footnote references
+└─ Logical flow
+
+Gemini Preferences:
+├─ Schema markup (critical)
+├─ Mobile-friendly formatting
+├─ Quick answer format
+└─ Fact boxes/tables
+
+Perplexity Preferences:
+├─ Multi-source citations
+├─ Clear data/statistics
+├─ Expert attribution
+└─ Topic depth
+Each page gets scored 0-100 for EACH model based on presence of these signals.
+
+
+WHAT THEY'RE NOT DOING (Important Distinction)
+❌ They're NOT querying ChatGPT API to check if you're cited
+- This would be expensive and unreliable
+- API rate limits would prevent consistent checking
+- Results would vary session to session
+
+✅ They're analyzing local page signals that AI models prefer
+
+- Downloaded once, analyzed locally
+- Consistent, predictable scoring
+- Scalable to unlimited users
+
+##** Their One-Click Optimization Features (How They Work)**
+Feature: Auto-Optimize Title Tags
+Data source: Google Search Console
+           ↓
+They identify: Keywords getting impressions but low CTR
+           ↓
+They use AI (Claude/GPT-4) to rewrite titles incorporating:
+├─ High-impression keywords
+├─ Emotional/power words (for CTR)
+├─ Optimal length (55-60 chars)
+└─ Brand mention placement
+
+Then they calculate: "This new title will increase 
+                     your CTR by ~2-3% based on 
+                     GSC click patterns"
+
+## **Feature: Auto-Generate Schema Markup**
+Feature: Auto-Generate Schema Markup
+Your page → Analyzed for content type
+                      ↓
+           Generates appropriate schema:
+           ├─ Article schema (blogs)
+           ├─ Product schema (ecommerce)
+           ├─ FAQ schema (Q&A sections)
+           ├─ LocalBusiness schema (services)
+           └─ Author schema (credentials)
+                      ↓
+           JSON-LD code ready to copy-paste
+Data source: Your page content. They're reading what's there and creating proper markup.
+
+
+***
+##** What Your Solution Should Do (Concrete Blueprint)**
+Based on ClickRank's approach, here's what YOU need to build:
+Phase 1: AI Readiness Audit (Week 1-2)
+Local page analysis checking:
+
+✓ HTML Structure Score
+  └─ H1 count, H2-H6 hierarchy, paragraph length
+  
+✓ Semantic Clarity Score
+  └─ Vocabulary level, jargon usage, definition proximity
+  
+✓ Schema Markup Score
+  └─ Presence of JSON-LD, completeness, accuracy
+  
+✓ E-E-A-T Score
+  └─ Author bio, credentials, publication date, updates
+  
+✓ Cite-ability Score
+  └─ Number of sources, citation format, fact density
+  
+✓ Format Friendliness Score
+  └─ Lists, tables, bullet points, short paragraphs
+
+PER-MODEL SCORING:
+├─ ChatGPT: weights clarity + structure
+├─ Claude: weights nuance + citations
+├─ Gemini: weights schema + mobile
+└─ Perplexity: weights sources + depth
+
+FINAL OUTPUT:
+- Overall score (0-100)
+- Per-model breakdown
+- Top 3-5 actionable fixes
+
+##** Phase 2: One-Click Optimization**
+Auto-fix generators:
+
+1. Schema Markup Generator
+   └─ Parse page content → Generate JSON-LD → Copy-paste
+
+2. Content Structure Optimizer
+   └─ Break paragraphs → Add headings → Format lists
+
+3. E-E-A-T Signal Enhancer
+   └─ Author bio template → Credentials showcase → Trust signals
+
+4. Citation Suggester
+   └─ Identify claims → Suggest sources → Format links
+
+##** Phase 3: Data Integration **
+- Connect Google Search Console
+- Use GSC keywords to guide optimization
+- Track which optimizations improve rankings
+- Build feedback loop
+
+##** What You Actually Need to Do (Concrete Method)**
+STEP 1: Analyze the page locally (like ClickRank does)
+├─ Parse HTML structure
+├─ Check schema markup
+├─ Analyze readability
+└─ Score E-E-A-T signals
+
+STEP 2: Cross-reference against known AI preferences
+├─ ChatGPT prefers: Clear structure, short paragraphs
+├─ Claude prefers: Nuanced, cited arguments
+├─ Gemini prefers: Schema markup, mobile-friendly
+└─ Perplexity prefers: Multiple sources, citations
+
+STEP 3: Give recommendations to improve these signals
+├─ Add better headings
+├─ Implement schema markup
+├─ Break paragraphs
+└─ Add citations
+
+STEP 4: User improves page → Gets ranked higher on Google
+        ↓
+THEN Google's AI picks it up from top results
+
+Your USP: Build the world's first Research-Backed, Platform-Specific, Competitive AI SEO Tool
+
+***
+## **CONCRETE COMPETITIVE ADVANTAGE #1: Research-Backed Signal Scoring**
+AI SIGNALS ANALYSIS
+═══════════════════════════════════════════════════════════
+
+📊 OVERALL AI READINESS: 62/100
+   (Based on 28 published research signals)
+
+🔴 CRITICAL GAPS (Must Fix - High Impact):
+   
+   1. Schema Markup Missing [IMPACT: +12 points]
+      └─ Research: "Government sources 11.75x more likely cited"
+         → Your page lacks author credentials schema
+         → Add: Article schema + Author bio markup
+         → Estimated improvement: +8 points
+         → Why: Claude values structured author data
+         
+   2. Paragraph Length Too Long [IMPACT: +8 points]
+      └─ Research: "Bullet points boost inclusion by 4.72%"
+         → Current: 3 paragraphs > 200 words each
+         → Recommendation: Break into 4-5 bullets per section
+         → Estimated improvement: +5 points
+         
+   3. No Citation Sources [IMPACT: +7 points]
+      └─ Research: "Cited sources correlation = 0.37 with AI"
+         → Your page has 0 external links
+         → Recommendation: Add 5-8 credible external links
+         → Why: Perplexity favors content citing sources
+
+🟡 MEDIUM GAPS (Should Fix - Medium Impact):
+   
+   4. Content Freshness [IMPACT: +4 points]
+      └─ Research: "ChatGPT cites content 25.7% fresher"
+         → Last updated: 6 months ago
+         → Recommendation: Add update date, refresh key stats
+         
+   5. E-E-A-T Weak [IMPACT: +3 points]
+      └─ Research: "Top 25% brands get 10x more citations"
+         → Missing author credentials display
+         → Recommendation: Add expert bio with LinkedIn
+
+🟢 MINOR GAPS (Could Fix - Low Impact):
+   
+   6. Mobile Optimization [IMPACT: +2 points]
+   7. Image Alt Text [IMPACT: +1 point]
+
+═══════════════════════════════════════════════════════════
+ESTIMATED IMPROVEMENT IF ALL FIXED: 62 → 89/100
+Why This Destroys ClickRank:
+- Transparency - User sees the research backing each recommendation
+- Prioritization - User knows which fixes matter most
+- Education - User learns WHY, not just WHAT
+- Confidence - User understands the evidence behind recommendations
+
+## ** CONCRETE COMPETITIVE ADVANTAGE #2: Platform-Specific Scoring**
+What YOU Should Do:
+PLATFORM-SPECIFIC ANALYSIS
+═══════════════════════════════════════════════════════════
+
+🤖 CHATGPT (33.07% citation rate at position #1)
+   ────────────────────────────────────────────
+   Preference Profile: "Clarity-first, conversation-friendly"
+   Your Score: 58/100
+   
+   Top Priorities (What ChatGPT values):
+   ✓ Clear heading structure [Your status: GOOD - 8/10]
+   ✓ Short paragraphs < 80 words [Your status: POOR - 3/10]
+      └─ Fix: Break 4 large paragraphs into 12 short ones
+   ✗ Recent content [Your status: WEAK - 4/10]  
+      └─ Fix: Add "Updated: Dec 9, 2025" timestamp
+   ✓ Conversational tone [Your status: GOOD - 7/10]
+   
+   QUICK FIX (Will improve ChatGPT score by +8):
+   → Split paragraphs + Add update timestamp
+
+────────────────────────────────────────────────────────
+
+🔎 PERPLEXITY (16.1% YouTube citations, prefers sources)
+   ────────────────────────────────────────────────────
+   Preference Profile: "Source-citation focused, multi-reference"
+   Your Score: 60/100
+   
+   Top Priorities (What Perplexity values):
+   ✓ Multiple external links [Your status: POOR - 1/10]
+      └─ Fix: Add 6-10 credible external citations
+   ✗ Quote-based formatting [Your status: NONE - 0/10]
+      └─ Fix: Add 3-5 direct quotes from authorities
+   ✓ Topic depth [Your status: GOOD - 8/10]
+   ✗ Video content [Your status: NONE - 0/10]
+      └─ Consider: Embed YouTube/video for 16% boost
+   
+   QUICK FIX (Will improve Perplexity score by +12):
+   → Add citations + Add quotes + Consider video
+
+────────────────────────────────────────────────────────
+
+🔷 GOOGLE GEMINI (Prefers schema markup heavily)
+   ────────────────────────────────────────────
+   Preference Profile: "Structured-data obsessed"
+   Your Score: 65/100
+   
+   Top Priorities (What Gemini values):
+   ✗ Schema markup [Your status: MISSING - 0/10]
+      └─ Fix: Add Article + Author + FAQ schemas
+   ✓ Mobile-friendly [Your status: GOOD - 8/10]
+   ✓ Site speed [Your status: GOOD - 9/10]
+   ✗ Breadcrumb structure [Your status: NONE - 0/10]
+   
+   QUICK FIX (Will improve Gemini score by +15):
+   → Implement schema markup (highest ROI)
+
+────────────────────────────────────────────────────────
+
+🧠 CLAUDE (Prefers nuanced, well-cited arguments)
+   ────────────────────────────────────────────
+   Preference Profile: "Academic-style, balanced arguments"
+   Your Score: 62/100
+   
+   Top Priorities (What Claude values):
+   ✓ Nuanced arguments [Your status: GOOD - 7/10]
+   ✓ Fact-based claims [Your status: GOOD - 8/10]
+   ✗ Academic citations [Your status: WEAK - 3/10]
+      └─ Fix: Add citations to published studies
+   ✓ Transparent methodology [Your status: GOOD - 7/10]
+   
+   QUICK FIX (Will improve Claude score by +8):
+   → Add academic/research citations
+
+═══════════════════════════════════════════════════════════
+PLATFORM-SPECIFIC OPTIMIZATION ROADMAP:
+
+WEEK 1 (Highest Impact):
+├─ Gemini: Add schema markup (+15 points) ⭐⭐⭐
+└─ Perplexity: Add citations + quotes (+12 points) ⭐⭐⭐
+
+WEEK 2 (Medium Impact):
+├─ ChatGPT: Break paragraphs + timestamps (+8 points) ⭐⭐
+└─ Claude: Add research citations (+8 points) ⭐⭐
+
+WEEK 3 (Nice-to-have):
+└─ Perplexity: Embed video content (+4 points) ⭐
+
+Why This Destroys ClickRank:
+- Specificity - User knows exactly what each model wants
+- Prioritization - Clear roadmap (Week 1 = highest ROI)
+- Differentiation - ClickRank shows scores; you show ACTION PLAN
+- Education - User learns platform-specific best practices
+
+## **CONCRETE COMPETITIVE ADVANTAGE #3: Competitive Positioning Analysis **
+COMPETITIVE AI VISIBILITY ANALYSIS
+═══════════════════════════════════════════════════════════
+
+📍 QUERY: "Best AI Content Detection Tools" (Your target)
+
+CURRENT SITUATION:
+───────────────────
+Your Website:  Not ranking in Google (hidden)
+               Not cited by AI (no visibility)
+
+GOOGLE SERP TOP 10:
+───────────────────
+1. Scribbr.com        [DR 92] [Rank: #1] [AI Citations: YES ✓]
+2. Originality.AI     [DR 78] [Rank: #2] [AI Citations: YES ✓]
+3. QuillBot.com       [DR 87] [Rank: #3] [AI Citations: YES ✓]
+4. GPTZero.me         [DR 71] [Rank: #4] [AI Citations: YES ✓]
+5. Your Site          [DR 45] [Rank: #NONE] [AI Citations: NO ✗]
+
+═══════════════════════════════════════════════════════════
+
+🎯 WINNING STRATEGY: You Don't Need to Beat Them Today
+
+Research shows: 40.58% of AI citations come from Google top 10.
+Only 15% of AI citations come from outside Google top 10.
+
+YOUR PATH:
+└─ Goal: Rank #7-10 on Google for "Best AI Detection Tools"
+   ├─ Once ranked: Automatic ~13-16% chance of AI citations
+   ├─ Timeline: 3-6 months (traditional SEO timeline)
+   └─ Then: Optimize AI signals to move from 13% → 25%
+
+COMPETITOR ANALYSIS (Why They Rank):
+───────────────────────────────────
+
+Scribbr (#1 with DR 92):
+├─ Content: 3,500+ words, comprehensive guide
+├─ Structure: 12 H2 sections, FAQ schema
+├─ Authority: 2,000+ backlinks, university mentions
+├─ Freshness: Updated weekly
+├─ AI Signals: ✓ Schema ✓ Citations ✓ E-E-A-T ✓ Freshness
+└─ AI Citation Rate: ~30% (estimated from research)
+
+Your Current Content:
+├─ Content: 800 words, basic overview
+├─ Structure: 3 H2 sections, no schema
+├─ Authority: 2 backlinks, no mentions
+├─ Freshness: Updated 1 year ago
+├─ AI Signals: ✗ No Schema ✗ No Citations ✗ Weak E-E-A-T ✗ Stale
+└─ AI Citation Rate: 0% (not even in Google)
+
+═══════════════════════════════════════════════════════════
+
+YOUR OPTIMIZATION ROADMAP (Phase-based):
+
+PHASE 1: Make Content Competitive (2-3 weeks)
+───────────────────────────────────────────────
+Goal: Improve from "unranked" to "competing for top 10"
+
+Content Improvements:
+├─ Expand to 4,000+ words (target Scribbr's 3,500+)
+├─ Add 15 H2/H3 sections (match Scribbr's structure)
+├─ Research & cite 10 tool comparisons
+├─ Add "Updated: Dec 2025" timestamps
+├─ Implement FAQ schema (12 Q&A pairs)
+├─ Add author credentials bio
+└─ Internal link to 5 related pages
+
+Link Building:
+├─ Target 5 relevant websites for backlinks
+├─ Aim: 50 backlinks in 3 months (vs Scribbr's 2,000)
+└─ Focus: Tech blogs, tool directories, education sites
+
+Expected Result: Rank position #25-50 (visible but not top 10)
+
+PHASE 2: Improve AI Signals (4-6 weeks)
+──────────────────────────────────────────
+Goal: Once ranking, optimize for AI citations
+
+AI-Specific Enhancements:
+├─ Add schema markup (Article + Tool comparison)
+├─ Break content into bullet-point sections
+├─ Add data visualizations (tables, charts)
+├─ Increase freshness frequency (monthly updates)
+├─ Get 2-3 tool websites to cite you
+└─ Build citations to your page from other articles
+
+Expected Result: Rank position #8-15 + AI citation rate 10-15%
+
+PHASE 3: Dominate AI (8-12 weeks)
+─────────────────────────────────────
+Goal: Be THE source AI models cite
+
+Advanced Tactics:
+├─ Become #1 most-cited tool review (original research)
+├─ Get featured in tool comparisons across tech sites
+├─ Develop "Tool Comparison Matrix" (tables/charts)
+├─ Launch research study: "AI Tool Accuracy Comparison"
+├─ Get 50+ backlinks in high-authority tech spaces
+└─ Update content weekly with new tools, accuracy data
+
+Expected Result: Rank position #3-5 + AI citation rate 20-25%
+
+═══════════════════════════════════════════════════════════
+MONTHLY MILESTONES:
+
+Month 1:
+├─ Content expanded to 4,000+ words ✓
+├─ Schema markup implemented ✓
+├─ 10 backlinks acquired
+└─ Current rank: #40-60
+
+Month 2:
+├─ AI signal improvements complete
+├─ 25 backlinks total
+└─ Current rank: #20-30
+
+Month 3:
+├─ Phase 1 complete, moving to Phase 2
+├─ 40 backlinks total
+└─ Current rank: #10-15 + 5% AI citations
+
+Month 6:
+├─ All phases complete
+├─ 100+ backlinks
+└─ Current rank: #4-6 + 20%+ AI citations
+
+═══════════════════════════════════════════════════════════
+Why This Destroys ClickRank:
+- Competitive intelligence - User sees what they're up against
+- Realistic roadmap - User knows Google ranking comes first, AI second
+- Benchmarking - User sees exact competitor analysis
+- Timeline clarity - User knows 3-6 month Google ranking + AI signal work
+- Transparency - User understands it's a TWO-PHASE process, not magic
+
+## ** CONCRETE COMPETITIVE ADVANTAGE #4: Research Data Integration**
+Every recommendation should cite the research backing it:
+RECOMMENDATION WITH RESEARCH TRANSPARENCY
+═══════════════════════════════════════════════════════════
+
+ISSUE: Your paragraphs are too long (avg 180 words)
+
+RESEARCH BACKING:
+─────────────────
+Source: Surfer SEO Case Study (Aug 2025) [web:106]
+"Breaking complex content into sequential steps increased 
+likelihood of being cited by 5.42%"
+
+"Formatting paragraphs into bullet points boosted AIO 
+inclusion by another 4.72%"
+
+Source: Passionfruit Research (Nov 2025) [web:104]
+"Content freshness
+
+***
+Core Features (MVP)
+Feature 1: AI Readiness Audit
+User Action: Paste URL → System analyzes page → Returns comprehensive score
+
+What the System Does:
+INPUT: URL
+  ↓
+PARSING:
+├─ Fetch HTML content
+├─ Parse DOM structure
+├─ Extract metadata (title, meta, schema, author, etc.)
+├─ Analyze heading hierarchy (H1-H6)
+├─ Assess paragraph length & structure
+├─ Check schema markup (JSON-LD)
+├─ Extract external/internal links
+├─ Check image alt text quality
+├─ Detect E-E-A-T signals
+└─ Evaluate content freshness
+
+SCORING (28 research-backed signals):
+├─ Schema Markup Score (research: "11.75x more citations")
+├─ Content Structure Score (research: "4.72% boost from bullets")
+├─ Paragraph Length Score (research: "5.42% boost from steps")
+├─ Citation Quality Score (research: "0.37 correlation")
+├─ E-E-A-T Score (research: "10x more for top 25%")
+├─ Content Freshness Score (research: "25.7% fresher cited")
+├─ Platform-Specific Scores:
+│  ├─ ChatGPT Preference Match (clarity, structure)
+│  ├─ Claude Preference Match (nuance, citations)
+│  ├─ Gemini Preference Match (schema, mobile)
+│  └─ Perplexity Preference Match (sources, depth)
+└─ Overall AI Readiness (0-100)
+
+OUTPUT:
+├─ Overall score: 62/100
+├─ Per-platform breakdown (ChatGPT 58, Claude 62, etc.)
+├─ Critical gaps (high impact fixes)
+├─ Medium gaps (should fix)
+├─ Minor gaps (could fix)
+├─ Ranked by impact (which fixes first)
+└─ Research citations for each recommendation
+
+UI/UX:
+
+- Clean dashboard showing overall score first
+- Progress bars for each platform
+- Color-coded priority (red=critical, yellow=medium, green=good)
+- Click to expand each issue and see reasoning
+
+
+Feature 2: Platform-Specific Analysis
+User Action: Click on platform name → See platform preferences & recommendations
+What the System Shows:
+For each platform (ChatGPT, Claude, Gemini, Perplexity):
+
+PREFERENCE PROFILE:
+├─ Tagline: "What this model values"
+├─ Current score: X/100
+├─ Citation probability: X% (from research)
+└─ Why this matters for you
+
+TOP PRIORITIES:
+├─ Priority 1: [Signal] - [Status: GOOD/POOR]
+│  └─ Fix: [Specific action]
+├─ Priority 2: [Signal] - [Status: GOOD/POOR]
+│  └─ Fix: [Specific action]
+└─ (5 total priorities)
+
+QUICK FIX SUMMARY:
+└─ "Will improve this platform's score by +X points"
+   └─ Estimated ROI: X points for Y hours of work
+
+RESEARCH BACKING:
+└─ "ChatGPT prefers short paragraphs"
+   └─ Source: Passionfruit Research (Nov 2025)
+   └─ Stat: "76.4% of cited content updated in last 30 days"
+
+UI/UX:
+
+- 4 platform cards (ChatGPT, Claude, Gemini, Perplexity)
+- Each card shows score + key metrics + quick action
+- Click each card to expand full analysis
+- Visual indicator of progress (filled segments)
+
+
+Feature 3: Competitive Positioning
+User Action: Enter target keyword → See competitive landscape
+What the System Does:
+
+INPUT: Keyword (e.g., "Best AI Detection Tools")
+
+ANALYSIS:
+├─ Fetch current Google SERP top 10
+├─ Extract domain metrics (DR, backlinks, traffic estimate)
+├─ Check if domains rank
+├─ Verify AI citations (where possible)
+├─ Analyze content structure of top 3
+└─ Compare against user's website
+
+OUTPUT - COMPETITIVE ANALYSIS:
+├─ Your current rank: Position #X (or "Not ranking")
+├─ Your DR: 45
+├─ Your backlinks: 2
+├─ Your AI citations: 0
+
+vs.
+
+Top Competitor Analysis:
+├─ #1 Rank: Scribbr.com
+│  ├─ DR: 92
+│  ├─ Backlinks: 2,000+
+│  ├─ Content length: 3,500 words
+│  ├─ AI Citations: YES ✓
+│  └─ Why they rank: "High authority + fresh content"
+│
+├─ #2 Rank: Originality.AI
+│  └─ (similar breakdown)
+│
+└─ Your Gap Analysis:
+   ├─ Content gap: Need +2,700 words
+   ├─ Authority gap: Need +1,998 backlinks
+   ├─ Freshness gap: Content is 12 months old
+   └─ Timeline to top 10: 3-6 months (realistic estimate)
+
+WINNING STRATEGY:
+├─ Phase 1 (Weeks 1-3): Content & Schema
+│  ├─ Expand to 4,000+ words
+│  ├─ Add 15 H2/H3 sections
+│  └─ Implement schema markup
+│
+├─ Phase 2 (Weeks 4-8): Authority & Freshness
+│  ├─ Build 10 backlinks (from tech blogs)
+│  ├─ Update content monthly
+│  └─ Add E-E-A-T signals
+│
+└─ Phase 3 (Weeks 9-12): AI Optimization
+   ├─ Platform-specific tweaks
+   ├─ Citation/source optimization
+   └─ Expected rank: #7-10
+
+MONTHLY MILESTONES:
+├─ Month 1: Rank #40-60, 0% AI citations
+├─ Month 2: Rank #20-30, 2-5% AI citations
+├─ Month 3: Rank #10-15, 10-15% AI citations
+└─ Month 6: Rank #3-6, 20%+ AI citations
+
+UI/UX:
+
+- Roadmap visualization (timeline + milestones)
+- Competitor comparison table (DR, backlinks, content length)
+- Your vs. #1 competitor side-by-side
+- Interactive timeline showing progress
+
+Feature 4: Research-Backed Recommendations
+ISSUE: Your paragraphs are too long (avg 180 words)
+
+IMPACT: +8 points to overall score
+
+RESEARCH BACKING:
+├─ Source: Surfer SEO Case Study (Aug 2025)
+├─ Stat: "Breaking content into sequential steps 
+│   increased AI citation likelihood by 5.42%"
+├─ Stat: "Bullet points boost inclusion by 4.72%"
+└─ Why it works: "AI models prefer scannable content"
+
+SPECIFIC ACTION:
+├─ Current: 4 paragraphs > 150 words each
+├─ Target: 12-15 sections < 80 words each
+├─ Tools to help: Grammarly, Hemingway Editor
+└─ Time estimate: 30-45 minutes
+
+PLATFORMS AFFECTED:
+├─ ChatGPT: +5 points (prefers clarity)
+├─ Claude: +2 points
+├─ Gemini: +3 points
+└─ Perplexity: +4 points
+UI/UX:
+
+- Each recommendation has "Learn More" button (shows research)
+- Citation counter at bottom ("Backed by 3 research studies")
+- Visual indicator of impact (big/medium/small bars)
+- "Implement Now" button (generates specific HTML/code)
+
+
+
+***
+
+## **SECTION 3: DATABASE SCHEMA**
+
+### **Core Tables**
+
+```sql
+-- Users table
+CREATE TABLE users (
+  id UUID PRIMARY KEY REFERENCES auth.users,
+  email TEXT UNIQUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  gsc_connected BOOLEAN DEFAULT FALSE,
+  gsc_property_url TEXT,
+  subscription_plan VARCHAR(20) DEFAULT 'free'
+);
+
+-- Websites user is tracking
+CREATE TABLE websites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  url TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_scraped TIMESTAMP,
+  UNIQUE(user_id, url)
+);
+
+-- Target keywords to track
+CREATE TABLE tracked_keywords (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID REFERENCES websites(id) ON DELETE CASCADE,
+  keyword TEXT NOT NULL,
+  search_volume INT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(website_id, keyword)
+);
+
+-- SERP snapshots (AI Overview tracking)
+CREATE TABLE serp_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  keyword_id UUID REFERENCES tracked_keywords(id) ON DELETE CASCADE,
+  snapshot_date TIMESTAMP DEFAULT NOW(),
+  has_ai_overview BOOLEAN,
+  ai_overview_html TEXT,
+  cited_domains TEXT[] DEFAULT '{}'::TEXT[],
+  your_site_cited BOOLEAN,
+  your_site_position INT,
+  estimated_traffic_impact FLOAT
+);
+
+-- Scraped page content
+CREATE TABLE page_data (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID REFERENCES websites(id) ON DELETE CASCADE,
+  url TEXT,
+  title TEXT,
+  meta_description TEXT,
+  h1_count INT,
+  h2_count INT,
+  has_faq_schema BOOLEAN,
+  has_howto_schema BOOLEAN,
+  readability_score FLOAT,
+  last_scraped TIMESTAMP DEFAULT NOW(),
+  UNIQUE(website_id, url)
+);
+
+-- AI readiness scores
+CREATE TABLE scores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_id UUID REFERENCES page_data(id) ON DELETE CASCADE,
+  structure_score FLOAT,
+  metadata_score FLOAT,
+  content_score FLOAT,
+  citation_pattern_score FLOAT,
+  overall_ai_readiness FLOAT,
+  calculated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- GSC metrics (from Google)
+CREATE TABLE gsc_metrics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID REFERENCES websites(id) ON DELETE CASCADE,
+  keyword TEXT,
+  impressions INT,
+  clicks INT,
+  ctr FLOAT,
+  avg_position FLOAT,
+  data_date DATE,
+  UNIQUE(website_id, keyword, data_date)
+);
+
+-- Generated schema fixes
+CREATE TABLE fixes_generated (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_id UUID REFERENCES page_data(id) ON DELETE CASCADE,
+  fix_type VARCHAR(50), -- 'schema', 'title', 'description', 'structure'
+  schema_json JSONB,
+  applied BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+***
+
+## **SECTION 4: SCORING SYSTEM - THE CRITICAL DETAIL**
+
+### **What ClickRank ACTUALLY Does (Not LLM Queries)**
+
+ClickRank measures visibility by:
+1. **Monitoring Google SERP** for AI Overviews
+2. **Extracting cited domains** from the Overview HTML
+3. **Tracking position** of your domain in the answer
+4. **Pattern matching** against observed structure
+
+### **Our Scoring Architecture (4 Components)**
+
+#### **Score 1: Structure Score (0-30 points)**
+```typescript
+Factors:
+- H1 count >= 1: +15 points
+- H2 count >= 2: +15 points
+- List structure present: +5 points (if we detect <ul>/<ol>)
+
+Why: AI Overviews favor clear hierarchy. Google's case study showed:
+- Bullet points boost AIO inclusion by 4.72%[web:181]
+- Sequential steps increase citation likelihood by 5.42%[web:181]
+```
+
+#### **Score 2: Metadata Score (0-25 points)**
+```typescript
+Factors:
+- Title length 30-60 chars optimized: +12 points
+- Meta description 120-160 chars: +13 points
+
+Why: Metadata indicates intent matching. ClickRank uses GSC data
+to see if pages ranking for queries have these characteristics.
+```
+
+#### **Score 3: Content Score (0-25 points)**
+```typescript
+Factors:
+- Readability score (Flesch-Kincaid): normalized to 0-25
+- Word count (500+ = better): implicit in readability
+
+Why: Content depth correlates with citation selection.
+AI models prefer detailed, comprehensive answers.
+```
+
+#### **Score 4: Citation Pattern Score (0-20 points)**
+```typescript
+Factors:
+- FAQ schema present: +10 points
+- HowTo schema present: +10 points
+- Observed citation frequency in SERP tracking: dynamic
+
+Why: ClickRank's research found:
+"LLMs reward contextual relevance and diversity over authority.
+Response density (not backlinks) determines prominence."[web:31]
+
+This is the ONLY dynamic score - based on your actual SERP history.
+```
+
+### **Overall Score Formula**
+```
+AI_Readiness_Score = 
+  (Structure * 0.30) +
+  (Metadata * 0.25) +
+  (Content * 0.25) +
+  (CitationPattern * 0.20)
+```
+**Range:** 0-100
+
+### **What Sources Say About Scoring**
+
+| Finding | Source | Implication |
+|---------|--------|-------------|
+| "Bullet points boost AIO by 4.72%" | Surfer SEO case study | Structure matters |
+| "Competition intensity = strongest predictor of visibility" | SearchAtlas research[1] | Your position among competitors = key |
+| "LLMs reward contextual relevance, not backlinks" | Backlinko analysis[1] | Authority ≠ AI citations |
+| "Citation frequency matters more than position" | Adobe LLM Optimizer[2] | How often you appear > where |
+
+### **NO LLM Scoring Needed**
+- Don't query ChatGPT/Gemini/Claude to test content
+- Cost: $0.01+ per page × 100s of pages = $$$ waste
+- Better approach: Monitor SERP patterns you already track
+- Your SERP data IS the training data for scoring
+
+***
+
+## **SECTION 5: FEATURES & WHAT THE SYSTEM SHOWS**
+
+### **Feature 1: Dashboard - Real-Time Overview**
+
+**What User Sees:**
+```
+┌─────────────────────────────────────────┐
+│ AI SEO Score: 78/100                    │
+│ ─────────────────────────────────────   │
+│ Citations in AI Overviews: 5 of 12 kw   │
+│ Competitors Beating You: 2 (Ahrefs, etc)│
+│ Pages Needing Fixes: 7                  │
+│                                         │
+│ Citation Trend (30 days):                │
+│ ↗ +3 new mentions                       │
+│ ↘ -1 lost mention (to competitor X)     │
+└─────────────────────────────────────────┘
+```
+
+**Behind the Scenes:**
+- Supabase realtime subscriptions
+- SERP monitoring Edge Function runs daily
+- Scores auto-calculated after scrape
+- GSC data synced every 6 hours
+
+***
+
+### **Feature 2: SERP Citation Tracker**
+
+**What User Sees:**
+```
+Keyword: "best AI content detection tools"
+├─ Status: AI Overview PRESENT ✓
+├─ Your Site: CITED (Position 2 of 4)
+├─ Competing Sites: 
+│  ├─ Originality.ai (Position 1)
+│  ├─ Your Site (Position 2) ← YOU
+│  ├─ Turnitin (Position 3)
+│  └─ GPT-Zero (Position 4)
+│
+├─ Traffic Impact: +12% estimated
+└─ Last Updated: Today 3:45 PM
+```
+
+**Data Sources:**
+- Google SERP scraping (free, monitor your own keywords)
+- HTML parsing to extract cited domains
+- GSC click/CTR comparison (before/after AI Overview)
+
+***
+
+### **Feature 3: Page-Level AI Readiness Analysis**
+
+**What User Sees:**
+```
+Page: /ai-content-detection-tools/
+Score: 82/100 ✓ GOOD
+
+Components:
+├─ Structure: 28/30 (strong H1-H2 hierarchy)
+├─ Metadata: 20/25 (title: 52 chars, desc: 145 chars)
+├─ Content: 18/25 (reading level: 8.2, ~2,800 words)
+└─ Schema: 16/20 (has FAQ schema ✓, needs HowTo schema)
+
+Recommendations:
+□ Add 3 more H2 subheadings
+□ Expand introduction (+200 words on "what is AI detection")
+□ Add HowTo schema for step-by-step comparison
+```
+
+**Calculation:**
+- Jina.ai scrapes page → Edge Function processes → Scores stored
+- Readability calculated with Flesch-Kincaid formula
+- Schema detection via regex matching
+
+***
+
+### **Feature 4: Research-Backed Recommendations**
+
+**What User Sees:**
+```
+FIX #1: Add FAQ Schema
+────────────────────────
+"57% of cited AI Overviews contain FAQ elements"[research]
+
+Current: ✗ No FAQ schema
+Suggested Fix: ✓ Add FAQ schema for 5 key questions
+
+ONE-CLICK GENERATE
+↓
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "@id": "#q1",
+      "name": "How do AI content detectors work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "[Content extracted from your page]"
+      }
+    }
+  ]
+}
+
+[COPY CODE] [APPLY TO PAGE] [TEST WITH SCHEMA VALIDATOR]
+```
+
+**How It Works:**
+1. Gemini analyzes page content
+2. Generates valid JSON-LD schema
+3. Maps your content to appropriate schema type
+4. User can copy/paste or auto-apply via WordPress plugin
+
+**Why Gemini Needed Here:**
+- Sarcasm detection (sentiment analysis)
+- Schema type inference ("Is this article? Product? FAQ?")
+- Content mapping (which paragraphs = FAQ answers?)
+- Not pattern-matching ≠ understanding
+
+***
+
+### **Feature 5: Competitor Analysis**
+
+**What User Sees:**
+```
+Competitor: Ahrefs.com
+├─ Pages Cited in AI Overviews: 8
+├─ Your Pages Cited: 5
+├─ Their Advantage: 
+│  ├─ More HowTo schemas (3 vs 1)
+│  ├─ Better readability (avg 72 vs 68)
+│  └─ Longer content (avg 3,200 words vs 2,500)
+│
+└─ Your Advantage:
+   ├─ Better metadata optimization (92% vs 85%)
+   └─ Fresher citations (+2 last week vs -1)
+
+Actionable Insight:
+"Add HowTo schema to your top 5 pages - estimated +3 additional
+citations based on industry patterns"
+```
+
+***
+
+## **SECTION 6: USER FLOWS**
+
+### **Flow 1: First-Time User (Onboarding)**
+
+1. User lands on homepage
+   ├─ Clear headline: "Research-Backed AI SEO Readiness in 60 Seconds"
+   ├─ Subheading: "See exactly what ChatGPT, Claude, Gemini, & Perplexity want from your content"
+   └─ CTA: "Analyze My Website"
+
+2. User enters URL
+   ├─ Input field: "Paste your website URL..."
+   ├─ Helper text: "e.g., yourdomain.com/blog/article"
+   └─ Submit button
+
+3. System analyzes (show progress)
+   ├─ "Fetching page content..." (2-3 sec)
+   ├─ "Analyzing structure..." (2-3 sec)
+   ├─ "Checking signals..." (2-3 sec)
+   ├─ "Comparing platforms..." (2-3 sec)
+   └─ "Calculating recommendations..." (2-3 sec)
+   
+   Total: ~10-15 seconds
+
+4. Results page loads (auto-scroll to top)
+   ├─ Big score display: "Your AI Readiness: 62/100"
+   ├─ Platform breakdown: ChatGPT 58, Claude 62, Gemini 65, Perplexity 60
+   ├─ Color gradient (red=40-60, yellow=60-75, green=75-100)
+   └─ Call-to-action: "See Detailed Analysis Below"
+
+5. User scrolls down
+   ├─ Section 1: "Critical Gaps (Fix These First)"
+   │  └─ 3-5 high-impact issues with research
+   ├─ Section 2: "Medium Gaps"
+   │  └─ 3-5 medium-impact issues
+   ├─ Section 3: "Minor Gaps"
+   │  └─ 2-3 low-impact issues
+   └─ Section 4: "Platform-Specific Breakdown"
+      ├─ ChatGPT card
+      ├─ Claude card
+      ├─ Gemini card
+      └─ Perplexity card
+
+6. User clicks on issue
+   ├─ Modal opens with full details:
+   │  ├─ Why it matters (research)
+   │  ├─ Specific action steps
+   │  ├─ Time estimate
+   │  ├─ Code/HTML to copy (if applicable)
+   │  └─ Platforms affected + point gains
+   └─ User clicks "Copy Fix" or "Learn More"
+
+7. User clicks platform card
+   ├─ Expands to show:
+   │  ├─ Preference profile
+   │  ├─ Current score
+   │  ├─ Top 5 priorities
+   │  └─ Quick fix summary
+   └─ CTA: "Show Competitive Analysis"
+
+8. User clicks "Competitive Analysis"
+   ├─ Modal shows:
+   │  ├─ Current Google rank
+   │  ├─ Top 3 competitor comparison
+   │  ├─ Winning strategy roadmap
+   │  └─ Monthly milestones
+   └─ User can share or save report
+
+
+Flow 2: Returning User (Tracked Progress)
+1. User logs in / Returns to dashboard
+   ├─ Sees list of previous analyses
+   ├─ Shows: URL, Score, Last Analyzed, Current Rank
+   └─ CTA: "View Report" or "Re-analyze"
+
+2. User clicks "View Report"
+   ├─ Shows same report as before BUT:
+   ├─ Updates score if re-analyzed
+   ├─ Shows progress: "Score improved from 62 → 68"
+   ├─ Shows rank progress: "#40 → #25"
+   └─ Shows citation progress: "0% → 5%"
+
+3. User implements fixes
+   ├─ Comes back to dashboard
+   ├─ Clicks "Re-analyze Now"
+   └─ System updates everything
+
+4. User can compare versions
+   ├─ "Before/After" comparison
+   ├─ See which fixes worked
+   ├─ Adjust strategy accordingly
+   └─ Share progress with team
