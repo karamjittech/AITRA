@@ -41,9 +41,12 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   useEffect(() => {
     async function fetchBotAccessData() {
       if (!pageId) {
+        console.log('[Bot Access] No pageId provided, skipping fetch');
         setLoadingBotData(false);
         return;
       }
+
+      console.log('[Bot Access] Fetching data for pageId:', pageId);
 
       try {
         const { data, error } = await supabase
@@ -52,8 +55,9 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
           .eq('page_id', pageId);
 
         if (error) {
-          console.error('Error fetching bot access data:', error);
+          console.error('[Bot Access] Error fetching data:', error);
         } else if (data) {
+          console.log('[Bot Access] Fetched data:', data.length, 'records');
           const transformedData: BotAccessStatus[] = (data as any[]).map((item: any) => ({
             id: item.id,
             pageId: item.page_id,
@@ -64,11 +68,13 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
             checkedAt: item.checked_at,
           }));
           setBotAccessData(transformedData);
+          console.log('[Bot Access] Transformed data:', transformedData);
         }
       } catch (error) {
-        console.error('Error fetching bot access data:', error);
+        console.error('[Bot Access] Exception during fetch:', error);
       } finally {
         setLoadingBotData(false);
+        console.log('[Bot Access] Loading complete');
       }
     }
 
@@ -217,12 +223,11 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
         </div>
       </div>
 
-      {!loadingBotData && botAccessData.length > 0 && (
-        <BotAccessCard
-          botAccessData={botAccessData}
-          scorePenalty={calculateBotPenalty(botAccessData.filter(b => !b.isAllowed).length)}
-        />
-      )}
+      <BotAccessCard
+        botAccessData={botAccessData}
+        scorePenalty={calculateBotPenalty(botAccessData.filter(b => !b.isAllowed).length)}
+        loading={loadingBotData}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>

@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { CheckCircle2, XCircle, AlertTriangle, ChevronDown, Shield, Bot } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle2, XCircle, AlertTriangle, ChevronDown, Shield, Bot, Loader2 } from "lucide-react";
 import { BotAccessStatus, BotInfo } from "@/lib/types";
 import { BOT_CONFIGS, getFixInstructions } from "@/lib/bot-verification";
 import { useState } from "react";
@@ -12,9 +13,10 @@ import { useState } from "react";
 interface BotAccessCardProps {
   botAccessData: BotAccessStatus[];
   scorePenalty: number;
+  loading?: boolean;
 }
 
-export function BotAccessCard({ botAccessData, scorePenalty }: BotAccessCardProps) {
+export function BotAccessCard({ botAccessData, scorePenalty, loading = false }: BotAccessCardProps) {
   const allowedBots = botAccessData.filter(b => b.isAllowed);
   const blockedBots = botAccessData.filter(b => !b.isAllowed);
   const totalBots = botAccessData.length;
@@ -49,15 +51,40 @@ export function BotAccessCard({ botAccessData, scorePenalty }: BotAccessCardProp
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {blockedBots.length > 0 && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Critical Issue:</strong> {blockedBots.length} of {totalBots} AI bots are blocked from accessing your site.
-              This means your content cannot appear in their search results.
-            </AlertDescription>
-          </Alert>
-        )}
+        {loading ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 rounded-lg border bg-blue-50 border-blue-200">
+              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900">Checking AI bot access...</p>
+                <p className="text-xs text-blue-700 mt-1">Verifying which AI crawlers can access your site (3-5 seconds)</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="p-3 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-5 w-5 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {blockedBots.length > 0 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Critical Issue:</strong> {blockedBots.length} of {totalBots} AI bots are blocked from accessing your site.
+                  This means your content cannot appear in their search results.
+                </AlertDescription>
+              </Alert>
+            )}
 
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm font-medium">
@@ -103,13 +130,15 @@ export function BotAccessCard({ botAccessData, scorePenalty }: BotAccessCardProp
           )}
         </div>
 
-        {blockedBots.length === 0 && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <p className="text-sm text-green-800 font-medium">
-              All AI bots can access your site. No action needed.
-            </p>
-          </div>
+            {blockedBots.length === 0 && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <p className="text-sm text-green-800 font-medium">
+                  All AI bots can access your site. No action needed.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
