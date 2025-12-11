@@ -4,16 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { OverallScore, ScoreDisplay } from "./score-display";
-import { PageAnalysis, Scores } from "@/lib/types";
+import { PlatformCardsSection } from "./platform-cards-section";
+import { PageAnalysis, Scores, PlatformScores } from "@/lib/types";
 import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List } from "lucide-react";
 
 interface ResultsDisplayProps {
   analysis: PageAnalysis;
   scores: Scores;
+  platformScores: PlatformScores;
   analyzedUrl: string;
 }
 
-export function ResultsDisplay({ analysis, scores, analyzedUrl }: ResultsDisplayProps) {
+export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }: ResultsDisplayProps) {
   const getScoreColor = (score: number, max: number): "red" | "yellow" | "green" => {
     const percentage = (score / max) * 100;
     if (percentage >= 75) return "green";
@@ -341,6 +343,8 @@ export function ResultsDisplay({ analysis, scores, analyzedUrl }: ResultsDisplay
           )}
         </CardContent>
       </Card>
+
+      <PlatformCardsSection platformScores={platformScores} analysis={analysis} />
     </div>
   );
 }

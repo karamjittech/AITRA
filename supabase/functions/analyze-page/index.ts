@@ -17,12 +17,22 @@ interface PageAnalysis {
   metaDescription: string | null;
   h1Count: number;
   h2Count: number;
+  h3Count: number;
   wordCount: number;
   hasFaqSchema: boolean;
   hasHowtoSchema: boolean;
   hasArticleSchema: boolean;
   hasListStructure: boolean;
   readabilityScore: number;
+  externalLinkCount: number;
+  uniqueRefDomainCount: number;
+  avgParagraphWords: number;
+  bulletRatio: number;
+  dataDensityScore: number;
+  citationPatternCount: number;
+  argumentDepthScore: number;
+  hasViewportTag: boolean;
+  hasAuthorSchema: boolean;
 }
 
 interface Scores {
@@ -31,6 +41,21 @@ interface Scores {
   contentScore: number;
   schemaScore: number;
   overallScore: number;
+}
+
+interface PlatformScores {
+  geminiScore: number;
+  chatgptScore: number;
+  claudeScore: number;
+  perplexityScore: number;
+  geminiSchemaComponent: number;
+  geminiMobileComponent: number;
+  chatgptStructureComponent: number;
+  chatgptClarityComponent: number;
+  claudeCitationComponent: number;
+  claudeNuanceComponent: number;
+  perplexityExternalLinksComponent: number;
+  perplexityDataComponent: number;
 }
 
 Deno.serve(async (req: Request) => {
@@ -129,6 +154,10 @@ Deno.serve(async (req: Request) => {
     console.log("Calculating scores...");
     const scores = calculateScores(analysis);
     console.log("Scores calculated:", scores);
+
+    console.log("Calculating platform-specific scores...");
+    const platformScores = calculatePlatformScores(analysis);
+    console.log("Platform scores calculated:", platformScores);
 
     console.log("Checking for existing website record...");
     const websiteRecord = await supabase
@@ -265,6 +294,33 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Failed to save scores: ${scoreInsert.error.message}`);
     }
 
+    console.log("Inserting platform score record...");
+    const platformScoreInsert = await supabase
+      .from("platform_scores")
+      .insert({
+        page_id: pageId,
+        gemini_score: platformScores.geminiScore,
+        chatgpt_score: platformScores.chatgptScore,
+        claude_score: platformScores.claudeScore,
+        perplexity_score: platformScores.perplexityScore,
+        gemini_schema_component: platformScores.geminiSchemaComponent,
+        gemini_mobile_component: platformScores.geminiMobileComponent,
+        chatgpt_structure_component: platformScores.chatgptStructureComponent,
+        chatgpt_clarity_component: platformScores.chatgptClarityComponent,
+        claude_citation_component: platformScores.claudeCitationComponent,
+        claude_nuance_component: platformScores.claudeNuanceComponent,
+        perplexity_external_links_component: platformScores.perplexityExternalLinksComponent,
+        perplexity_data_component: platformScores.perplexityDataComponent,
+        calculated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (platformScoreInsert.error) {
+      console.error("Error inserting platform scores:", platformScoreInsert.error);
+      throw new Error(`Failed to save platform scores: ${platformScoreInsert.error.message}`);
+    }
+
     console.log("Analysis complete! Score ID:", scoreInsert.data.id);
 
     return new Response(
@@ -272,6 +328,7 @@ Deno.serve(async (req: Request) => {
         success: true,
         analysis: analysis,
         scores: scores,
+        platformScores: platformScores,
         pageId: pageId,
         websiteId: websiteId,
       }),
@@ -312,6 +369,9 @@ function analyzeHTML(html: string): PageAnalysis {
   const h2Matches = html.match(/<h2[^>]*>.*?<\/h2>/gi);
   const h2Count = h2Matches ? h2Matches.length : 0;
 
+  const h3Matches = html.match(/<h3[^>]*>.*?<\/h3>/gi);
+  const h3Count = h3Matches ? h3Matches.length : 0;
+
   const textContent = html
     .replace(/<script[^>]*>.*?<\/script>/gi, "")
     .replace(/<style[^>]*>.*?<\/style>/gi, "")
@@ -335,6 +395,10 @@ function analyzeHTML(html: string): PageAnalysis {
     html.includes('"@type": "Article"') ||
     html.includes("NewsArticle") ||
     html.includes("BlogPosting");
+  const hasAuthorSchema =
+    html.includes('"@type":"Person"') ||
+    html.includes('"author"') ||
+    html.includes('"Person"');
 
   const hasListStructure =
     html.includes("<ul") ||
@@ -344,17 +408,89 @@ function analyzeHTML(html: string): PageAnalysis {
 
   const readabilityScore = calculateReadabilityScore(textContent, wordCount);
 
+  const externalLinkMatches = html.match(/<a[^>]+href=["']https?:\/\/[^"']+["']/gi) || [];
+  const externalLinkCount = externalLinkMatches.length;
+
+  const uniqueDomains = new Set<string>();
+  externalLinkMatches.forEach((link) => {
+    const urlMatch = link.match(/href=["'](https?:\/\/[^"']+)["']/i);
+    if (urlMatch) {
+      try {
+        const domain = new URL(urlMatch[1]).hostname;
+        uniqueDomains.add(domain);
+      } catch (e) {
+      }
+    }
+  });
+  const uniqueRefDomainCount = uniqueDomains.size;
+
+  const paragraphs = html.match(/<p[^>]*>.*?<\/p>/gi) || [];
+  let totalParagraphWords = 0;
+  paragraphs.forEach((p) => {
+    const pText = p.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const pWords = pText.split(/\s+/).filter((w) => w.length > 0);
+    totalParagraphWords += pWords.length;
+  });
+  const avgParagraphWords = paragraphs.length > 0 ? totalParagraphWords / paragraphs.length : 0;
+
+  const listItems = (html.match(/<li[^>]*>/gi) || []).length;
+  const totalLines = textContent.split(/\n/).length;
+  const bulletRatio = totalLines > 0 ? listItems / totalLines : 0;
+
+  const numberMatches = textContent.match(/\d+%|\d{4}|\d+\.\d+|\$\d+/g) || [];
+  const dataDensityScore = wordCount > 0 ? (numberMatches.length / wordCount) * 1000 : 0;
+
+  const citationPatterns = [
+    /according to/gi,
+    /research shows/gi,
+    /study found/gi,
+    /published in/gi,
+    /source:/gi,
+  ];
+  let citationPatternCount = 0;
+  citationPatterns.forEach((pattern) => {
+    const matches = textContent.match(pattern);
+    if (matches) citationPatternCount += matches.length;
+  });
+
+  const argumentWords = [
+    /because/gi,
+    /however/gi,
+    /on the other hand/gi,
+    /although/gi,
+    /despite/gi,
+    /nevertheless/gi,
+  ];
+  let argumentDepthScore = 0;
+  argumentWords.forEach((pattern) => {
+    const matches = textContent.match(pattern);
+    if (matches) argumentDepthScore += matches.length;
+  });
+  argumentDepthScore = wordCount > 0 ? (argumentDepthScore / wordCount) * 1000 : 0;
+
+  const hasViewportTag = html.includes('name="viewport"') || html.includes("name='viewport'");
+
   return {
     title,
     metaDescription,
     h1Count,
     h2Count,
+    h3Count,
     wordCount,
     hasFaqSchema,
     hasHowtoSchema,
     hasArticleSchema,
     hasListStructure,
     readabilityScore,
+    externalLinkCount,
+    uniqueRefDomainCount,
+    avgParagraphWords,
+    bulletRatio,
+    dataDensityScore,
+    citationPatternCount,
+    argumentDepthScore,
+    hasViewportTag,
+    hasAuthorSchema,
   };
 }
 
@@ -471,4 +607,206 @@ function calculateScores(analysis: PageAnalysis): Scores {
     schemaScore,
     overallScore: Math.round(overallScore * 10) / 10,
   };
+}
+
+function calculatePlatformScores(analysis: PageAnalysis): PlatformScores {
+  const geminiSchemaComponent = calculateGeminiSchema(analysis);
+  const geminiMobileComponent = calculateGeminiMobile(analysis);
+  const geminiScore = Math.min(100, geminiSchemaComponent + geminiMobileComponent);
+
+  const chatgptStructureComponent = calculateChatGPTStructure(analysis);
+  const chatgptClarityComponent = calculateChatGPTClarity(analysis);
+  const chatgptScore = Math.min(100, chatgptStructureComponent + chatgptClarityComponent);
+
+  const claudeCitationComponent = calculateClaudeCitation(analysis);
+  const claudeNuanceComponent = calculateClaudeNuance(analysis);
+  const claudeScore = Math.min(100, claudeCitationComponent + claudeNuanceComponent);
+
+  const perplexityExternalLinksComponent = calculatePerplexityExternalLinks(analysis);
+  const perplexityDataComponent = calculatePerplexityData(analysis);
+  const perplexityScore = Math.min(100, perplexityExternalLinksComponent + perplexityDataComponent);
+
+  return {
+    geminiScore: Math.round(geminiScore * 10) / 10,
+    chatgptScore: Math.round(chatgptScore * 10) / 10,
+    claudeScore: Math.round(claudeScore * 10) / 10,
+    perplexityScore: Math.round(perplexityScore * 10) / 10,
+    geminiSchemaComponent: Math.round(geminiSchemaComponent * 10) / 10,
+    geminiMobileComponent: Math.round(geminiMobileComponent * 10) / 10,
+    chatgptStructureComponent: Math.round(chatgptStructureComponent * 10) / 10,
+    chatgptClarityComponent: Math.round(chatgptClarityComponent * 10) / 10,
+    claudeCitationComponent: Math.round(claudeCitationComponent * 10) / 10,
+    claudeNuanceComponent: Math.round(claudeNuanceComponent * 10) / 10,
+    perplexityExternalLinksComponent: Math.round(perplexityExternalLinksComponent * 10) / 10,
+    perplexityDataComponent: Math.round(perplexityDataComponent * 10) / 10,
+  };
+}
+
+function calculateGeminiSchema(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.hasFaqSchema || analysis.hasHowtoSchema || analysis.hasArticleSchema) {
+    score += 40;
+  }
+
+  if (analysis.hasFaqSchema || analysis.hasHowtoSchema) {
+    score += 10;
+  }
+
+  if (analysis.hasAuthorSchema) {
+    score += 10;
+  }
+
+  return Math.min(60, score);
+}
+
+function calculateGeminiMobile(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.avgParagraphWords <= 80) {
+    score += 20;
+  } else if (analysis.avgParagraphWords <= 120) {
+    score += 10;
+  }
+
+  if (analysis.bulletRatio >= 0.15) {
+    score += 10;
+  } else if (analysis.bulletRatio >= 0.08) {
+    score += 5;
+  }
+
+  if (analysis.hasViewportTag) {
+    score += 10;
+  }
+
+  return Math.min(40, score);
+}
+
+function calculateChatGPTStructure(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.h1Count === 1) {
+    score += 25;
+  } else if (analysis.h1Count > 0) {
+    score += 10;
+  }
+
+  const totalHeadings = analysis.h2Count + analysis.h3Count;
+  if (totalHeadings >= 5) {
+    score += 15;
+  } else if (totalHeadings >= 2) {
+    score += 10;
+  }
+
+  if (analysis.hasListStructure) {
+    score += 10;
+  }
+
+  return Math.min(50, score);
+}
+
+function calculateChatGPTClarity(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.readabilityScore >= 60 && analysis.readabilityScore <= 80) {
+    score += 20;
+  } else if (analysis.readabilityScore >= 50) {
+    score += 15;
+  } else if (analysis.readabilityScore >= 40) {
+    score += 10;
+  }
+
+  if (analysis.avgParagraphWords <= 80) {
+    score += 15;
+  } else if (analysis.avgParagraphWords <= 120) {
+    score += 10;
+  }
+
+  if (analysis.bulletRatio >= 0.2) {
+    score += 15;
+  } else if (analysis.bulletRatio >= 0.1) {
+    score += 10;
+  }
+
+  return Math.min(50, score);
+}
+
+function calculateClaudeCitation(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.uniqueRefDomainCount === 0) {
+    score = 0;
+  } else if (analysis.uniqueRefDomainCount <= 3) {
+    score = 20 + (analysis.uniqueRefDomainCount * 5);
+  } else if (analysis.uniqueRefDomainCount <= 10) {
+    score = 35 + ((analysis.uniqueRefDomainCount - 3) * 3);
+  } else {
+    score = 56;
+  }
+
+  if (analysis.citationPatternCount > 0) {
+    score += Math.min(5, analysis.citationPatternCount);
+  }
+
+  return Math.min(60, score);
+}
+
+function calculateClaudeNuance(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.argumentDepthScore > 5) {
+    score += 15;
+  } else if (analysis.argumentDepthScore > 2) {
+    score += 10;
+  }
+
+  if (analysis.wordCount > 1500) {
+    score += 15;
+  } else if (analysis.wordCount > 800) {
+    score += 10;
+  }
+
+  if (analysis.externalLinkCount >= 5 && analysis.argumentDepthScore > 2) {
+    score += 10;
+  }
+
+  return Math.min(40, score);
+}
+
+function calculatePerplexityExternalLinks(analysis: PageAnalysis): number {
+  let score = 0;
+
+  const domainCount = analysis.uniqueRefDomainCount;
+
+  if (domainCount === 0) {
+    score = 0;
+  } else if (domainCount <= 3) {
+    score = 20 + (domainCount * 5);
+  } else if (domainCount <= 8) {
+    score = 35 + ((domainCount - 3) * 3);
+  } else {
+    score = 51;
+  }
+
+  return Math.min(55, score);
+}
+
+function calculatePerplexityData(analysis: PageAnalysis): number {
+  let score = 0;
+
+  if (analysis.dataDensityScore < 10) {
+    score = 0;
+  } else if (analysis.dataDensityScore < 30) {
+    score = 15;
+  } else if (analysis.dataDensityScore < 60) {
+    score = 30;
+  } else {
+    score = 40;
+  }
+
+  if (analysis.hasListStructure && analysis.dataDensityScore > 20) {
+    score += 5;
+  }
+
+  return Math.min(45, score);
 }

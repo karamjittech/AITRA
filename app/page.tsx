@@ -126,6 +126,7 @@ export default function Home() {
             <ResultsDisplay
               analysis={analysisResult.analysis}
               scores={analysisResult.scores}
+              platformScores={analysisResult.platformScores}
               analyzedUrl={analyzedUrl}
             />
             <div className="flex justify-center">
