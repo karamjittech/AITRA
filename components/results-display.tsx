@@ -1,26 +1,104 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { OverallScore, ScoreDisplay } from "./score-display";
 import { PlatformCardsSection } from "./platform-cards-section";
+import { FixModal } from "./fix-modal";
 import { PageAnalysis, Scores, PlatformScores } from "@/lib/types";
-import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List, Sparkles, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResultsDisplayProps {
   analysis: PageAnalysis;
   scores: Scores;
   platformScores: PlatformScores;
   analyzedUrl: string;
+  pageId?: string;
 }
 
-export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }: ResultsDisplayProps) {
+export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, pageId }: ResultsDisplayProps) {
+  const [loadingFix, setLoadingFix] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentFix, setCurrentFix] = useState<any>(null);
+  const [currentFixType, setCurrentFixType] = useState<string>("");
+  const [currentFixImpact, setCurrentFixImpact] = useState<string>("");
+  const { toast } = useToast();
+
   const getScoreColor = (score: number, max: number): "red" | "yellow" | "green" => {
     const percentage = (score / max) * 100;
     if (percentage >= 75) return "green";
     if (percentage >= 50) return "yellow";
     return "red";
+  };
+
+  const handleGenerateFix = async (
+    fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag",
+    impact: string
+  ) => {
+    setLoadingFix(fixType);
+
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/generate-fix`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            pageId: pageId || "00000000-0000-0000-0000-000000000001",
+            fixType: fixType,
+            currentContent: {
+              title: analysis.title,
+              metaDescription: analysis.metaDescription,
+              url: analyzedUrl,
+            },
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate fix");
+      }
+
+      if (data.success) {
+        setCurrentFix(data.fix.schema_json);
+        setCurrentFixType(fixType);
+        setCurrentFixImpact(impact);
+        setModalOpen(true);
+
+        if (data.cached) {
+          toast({
+            title: "Retrieved cached fix",
+            description: "This fix was generated previously",
+          });
+        } else {
+          toast({
+            title: "Fix generated successfully",
+            description: "Your optimization code is ready to use",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error generating fix:", error);
+      toast({
+        title: "Generation failed",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingFix(null);
+    }
   };
 
   return (
@@ -87,9 +165,28 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
             <div className="space-y-2">
               <div className="flex justify-between items-start">
                 <span className="text-sm text-muted-foreground">Title</span>
-                <span className="text-sm font-medium text-right max-w-[60%]">
-                  {analysis.title || "Not found"}
-                </span>
+                <div className="flex items-center gap-2">
+                  {analysis.title && (analysis.title.length < 30 || analysis.title.length > 60) && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleGenerateFix("title-tag", "+6 points")}
+                      disabled={loadingFix === "title-tag"}
+                    >
+                      {loadingFix === "title-tag" ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Rewrite
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  <span className="text-sm font-medium text-right max-w-[60%]">
+                    {analysis.title || "Not found"}
+                  </span>
+                </div>
               </div>
               {analysis.title && (
                 <div className="flex justify-between text-xs">
@@ -114,11 +211,30 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
             <div className="space-y-2">
               <div className="flex justify-between items-start">
                 <span className="text-sm text-muted-foreground">Meta Description</span>
-                <span className="text-sm font-medium text-right max-w-[60%]">
-                  {analysis.metaDescription
-                    ? `${analysis.metaDescription.substring(0, 50)}...`
-                    : "Not found"}
-                </span>
+                <div className="flex items-center gap-2">
+                  {analysis.metaDescription && (analysis.metaDescription.length < 120 || analysis.metaDescription.length > 160) && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleGenerateFix("meta-description", "+7 points")}
+                      disabled={loadingFix === "meta-description"}
+                    >
+                      {loadingFix === "meta-description" ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Rewrite
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  <span className="text-sm font-medium text-right max-w-[60%]">
+                    {analysis.metaDescription
+                      ? `${analysis.metaDescription.substring(0, 50)}...`
+                      : "Not found"}
+                  </span>
+                </div>
               </div>
               {analysis.metaDescription && (
                 <div className="flex justify-between text-xs">
@@ -223,9 +339,30 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
                 )}
                 <span className="font-medium">FAQ Schema</span>
               </div>
-              <Badge variant={analysis.hasFaqSchema ? "default" : "secondary"}>
-                {analysis.hasFaqSchema ? "Detected" : "Missing"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {!analysis.hasFaqSchema && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateFix("faq-schema", "+10 points")}
+                    disabled={loadingFix === "faq-schema"}
+                  >
+                    {loadingFix === "faq-schema" ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Generate
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Badge variant={analysis.hasFaqSchema ? "default" : "secondary"}>
+                  {analysis.hasFaqSchema ? "Detected" : "Missing"}
+                </Badge>
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -237,9 +374,30 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
                 )}
                 <span className="font-medium">HowTo Schema</span>
               </div>
-              <Badge variant={analysis.hasHowtoSchema ? "default" : "secondary"}>
-                {analysis.hasHowtoSchema ? "Detected" : "Missing"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {!analysis.hasHowtoSchema && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateFix("howto-schema", "+10 points")}
+                    disabled={loadingFix === "howto-schema"}
+                  >
+                    {loadingFix === "howto-schema" ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Generate
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Badge variant={analysis.hasHowtoSchema ? "default" : "secondary"}>
+                  {analysis.hasHowtoSchema ? "Detected" : "Missing"}
+                </Badge>
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -251,9 +409,30 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
                 )}
                 <span className="font-medium">Article Schema</span>
               </div>
-              <Badge variant={analysis.hasArticleSchema ? "default" : "secondary"}>
-                {analysis.hasArticleSchema ? "Detected" : "Not Found"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {!analysis.hasArticleSchema && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateFix("article-schema", "+5 points")}
+                    disabled={loadingFix === "article-schema"}
+                  >
+                    {loadingFix === "article-schema" ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Generate
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Badge variant={analysis.hasArticleSchema ? "default" : "secondary"}>
+                  {analysis.hasArticleSchema ? "Detected" : "Not Found"}
+                </Badge>
+              </div>
             </div>
 
             {!analysis.hasFaqSchema && !analysis.hasHowtoSchema && (
@@ -307,11 +486,33 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
             <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 bg-blue-50">
               <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium text-blue-900">Add FAQ Schema Markup</p>
-                <p className="text-sm text-blue-700 mt-1">
-                  FAQ schema helps AI models understand your content better and increases citation likelihood.
-                </p>
-                <Badge className="mt-2" variant="outline">High Impact: +10 points</Badge>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="font-medium text-blue-900">Add FAQ Schema Markup</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      FAQ schema helps AI models understand your content better and increases citation likelihood.
+                    </p>
+                    <Badge className="mt-2" variant="outline">High Impact: +10 points</Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateFix("faq-schema", "+10 points")}
+                    disabled={loadingFix === "faq-schema"}
+                    className="shrink-0"
+                  >
+                    {loadingFix === "faq-schema" ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-1" />
+                        Fix Now
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -345,6 +546,14 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl }
       </Card>
 
       <PlatformCardsSection platformScores={platformScores} analysis={analysis} />
+
+      <FixModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        fixType={currentFixType}
+        generatedContent={currentFix}
+        impact={currentFixImpact}
+      />
     </div>
   );
 }

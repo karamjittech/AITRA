@@ -128,6 +128,7 @@ export default function Home() {
               scores={analysisResult.scores}
               platformScores={analysisResult.platformScores}
               analyzedUrl={analyzedUrl}
+              pageId={analysisResult.pageId}
             />
             <div className="flex justify-center">
               <Button onClick={handleReset} size="lg" variant="outline">
