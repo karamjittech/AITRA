@@ -321,6 +321,80 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Failed to save platform scores: ${platformScoreInsert.error.message}`);
     }
 
+    console.log("Generating mock competitor data...");
+    const competitors = generateMockCompetitors(scores.overallScore, analysis.wordCount);
+
+    console.log("Inserting competitor benchmarks...");
+    for (const competitor of competitors) {
+      const competitorInsert = await supabase
+        .from("competitor_benchmarks")
+        .insert({
+          page_id: pageId,
+          competitor_name: competitor.name,
+          competitor_url: competitor.url,
+          competitor_domain: competitor.domain,
+          domain_rating: competitor.domainRating,
+          backlink_count: competitor.backlinkCount,
+          content_length: competitor.contentLength,
+          h1_count: competitor.h1Count,
+          h2_count: competitor.h2Count,
+          schema_present: competitor.schemaPresent,
+          freshness_days: competitor.freshnessDays,
+          overall_score: competitor.overallScore,
+          google_rank: competitor.googleRank,
+          ai_citation_percentage: competitor.aiCitationPercentage,
+          is_mock_data: true,
+        });
+
+      if (competitorInsert.error) {
+        console.error("Error inserting competitor:", competitorInsert.error);
+      }
+    }
+
+    console.log("Calculating roadmap phase...");
+    const currentPhase = calculateCurrentPhase(scores.overallScore);
+
+    console.log("Checking for existing roadmap...");
+    const existingRoadmap = await supabase
+      .from("optimization_roadmap")
+      .select("id")
+      .eq("page_id", pageId)
+      .maybeSingle();
+
+    if (existingRoadmap.data) {
+      console.log("Updating existing roadmap...");
+      const updateRoadmap = await supabase
+        .from("optimization_roadmap")
+        .update({
+          current_phase: currentPhase,
+          phase_1_completed: scores.overallScore >= 50,
+          phase_2_completed: scores.overallScore >= 75,
+          phase_3_completed: scores.overallScore >= 85,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingRoadmap.data.id);
+
+      if (updateRoadmap.error) {
+        console.error("Error updating roadmap:", updateRoadmap.error);
+      }
+    } else {
+      console.log("Creating new roadmap...");
+      const roadmapInsert = await supabase
+        .from("optimization_roadmap")
+        .insert({
+          page_id: pageId,
+          current_phase: currentPhase,
+          phase_1_completed: scores.overallScore >= 50,
+          phase_2_completed: scores.overallScore >= 75,
+          phase_3_completed: scores.overallScore >= 85,
+          estimated_completion_weeks: estimateWeeksToComplete(scores.overallScore),
+        });
+
+      if (roadmapInsert.error) {
+        console.error("Error inserting roadmap:", roadmapInsert.error);
+      }
+    }
+
     console.log("Analysis complete! Score ID:", scoreInsert.data.id);
 
     return new Response(
@@ -809,4 +883,72 @@ function calculatePerplexityData(analysis: PageAnalysis): number {
   }
 
   return Math.min(45, score);
+}
+
+function generateMockCompetitors(userScore: number, userWordCount: number) {
+  return [
+    {
+      name: "Industry Leader",
+      url: "https://example-leader.com",
+      domain: "example-leader.com",
+      domainRating: 92,
+      backlinkCount: 2000,
+      contentLength: Math.floor(userWordCount * 1.5),
+      h1Count: 1,
+      h2Count: 12,
+      schemaPresent: true,
+      freshnessDays: 7,
+      overallScore: Math.min(userScore + 25, 95),
+      googleRank: 1,
+      aiCitationPercentage: 30,
+    },
+    {
+      name: "Established Competitor",
+      url: "https://example-competitor.com",
+      domain: "example-competitor.com",
+      domainRating: 78,
+      backlinkCount: 850,
+      contentLength: Math.floor(userWordCount * 1.2),
+      h1Count: 1,
+      h2Count: 8,
+      schemaPresent: true,
+      freshnessDays: 14,
+      overallScore: Math.min(userScore + 15, 85),
+      googleRank: 2,
+      aiCitationPercentage: 22,
+    },
+    {
+      name: "Rising Challenger",
+      url: "https://example-challenger.com",
+      domain: "example-challenger.com",
+      domainRating: 65,
+      backlinkCount: 320,
+      contentLength: Math.floor(userWordCount * 1.1),
+      h1Count: 1,
+      h2Count: 6,
+      schemaPresent: false,
+      freshnessDays: 30,
+      overallScore: Math.max(userScore + 5, 60),
+      googleRank: 5,
+      aiCitationPercentage: 12,
+    },
+  ];
+}
+
+function calculateCurrentPhase(overallScore: number): number {
+  if (overallScore < 50) return 1;
+  if (overallScore < 75) return 2;
+  return 3;
+}
+
+function estimateWeeksToComplete(currentScore: number): number {
+  const currentPhase = calculateCurrentPhase(currentScore);
+
+  if (currentPhase === 1) {
+    return 12;
+  } else if (currentPhase === 2) {
+    return 9;
+  } else {
+    return 4;
+  }
 }

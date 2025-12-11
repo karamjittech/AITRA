@@ -5,10 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OverallScore, ScoreDisplay } from "./score-display";
 import { PlatformCardsSection } from "./platform-cards-section";
 import { FixModal } from "./fix-modal";
-import { PageAnalysis, Scores, PlatformScores } from "@/lib/types";
+import { CompetitiveAnalysis } from "./competitive-analysis";
+import { RoadmapVisualization } from "./roadmap-visualization";
+import { PageAnalysis, Scores, PlatformScores, CompetitorData } from "@/lib/types";
+import { generateMockCompetitors, selectPrimaryCompetitor } from "@/lib/mock-competitors";
+import { generateRoadmapPhases, calculateCurrentPhase } from "@/lib/phase-calculator";
 import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,6 +32,15 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   const [currentFixType, setCurrentFixType] = useState<string>("");
   const [currentFixImpact, setCurrentFixImpact] = useState<string>("");
   const { toast } = useToast();
+
+  const competitors = generateMockCompetitors(
+    scores.overallScore,
+    analysis.wordCount,
+    analyzedUrl
+  );
+  const primaryCompetitor = selectPrimaryCompetitor(competitors);
+  const currentPhase = calculateCurrentPhase(scores.overallScore);
+  const roadmapPhases = generateRoadmapPhases(scores.overallScore);
 
   const getScoreColor = (score: number, max: number): "red" | "yellow" | "green" => {
     const percentage = (score / max) * 100;
@@ -110,7 +124,15 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="competitive">Competitive Analysis</TabsTrigger>
+          <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <OverallScore score={scores.overallScore} />
         </div>
@@ -545,7 +567,26 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
         </CardContent>
       </Card>
 
-      <PlatformCardsSection platformScores={platformScores} analysis={analysis} />
+          <PlatformCardsSection platformScores={platformScores} analysis={analysis} />
+        </TabsContent>
+
+        <TabsContent value="competitive" className="space-y-6 mt-6">
+          <CompetitiveAnalysis
+            competitor={primaryCompetitor}
+            userAnalysis={analysis}
+            userScores={scores}
+            analyzedUrl={analyzedUrl}
+          />
+        </TabsContent>
+
+        <TabsContent value="roadmap" className="space-y-6 mt-6">
+          <RoadmapVisualization
+            phases={roadmapPhases}
+            currentPhase={currentPhase}
+            overallScore={scores.overallScore}
+          />
+        </TabsContent>
+      </Tabs>
 
       <FixModal
         open={modalOpen}
