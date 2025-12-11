@@ -10,10 +10,13 @@ import { OverallScore, ScoreDisplay } from "./score-display";
 import { PlatformCardsSection } from "./platform-cards-section";
 import { FixModal } from "./fix-modal";
 import { CompetitiveAnalysis } from "./competitive-analysis";
+import { CompetitiveGapAnalysis } from "./competitive-gap-analysis";
 import { RoadmapVisualization } from "./roadmap-visualization";
+import { MonthlyMilestones } from "./monthly-milestones";
 import { BotAccessCard } from "./bot-access-card";
 import { EntityIdentityCard } from "./entity-identity-card";
 import { AEOScoreCard } from "./aeo-score-card";
+import { ResearchRecommendations } from "./research-recommendations";
 import { PageAnalysis, Scores, PlatformScores, CompetitorData, BotAccessStatus } from "@/lib/types";
 import { generateMockCompetitors, selectPrimaryCompetitor } from "@/lib/mock-competitors";
 import { generateRoadmapPhases, calculateCurrentPhase } from "@/lib/phase-calculator";
@@ -553,109 +556,24 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Recommendations</CardTitle>
-          <CardDescription>
-            Top priority improvements to boost your AI visibility
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {analysis.h1Count !== 1 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-red-200 bg-red-50">
-              <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-red-900">Fix H1 Tag Structure</p>
-                <p className="text-sm text-red-700 mt-1">
-                  Your page has {analysis.h1Count} H1 tag{analysis.h1Count !== 1 ? 's' : ''}.
-                  Pages should have exactly one H1 tag for optimal AI parsing.
-                </p>
-                <Badge className="mt-2" variant="destructive">High Impact: +15 points</Badge>
-              </div>
-            </div>
-          )}
-
-          {analysis.h2Count < 2 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-yellow-200 bg-yellow-50">
-              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-yellow-900">Add More H2 Subheadings</p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  Your page has {analysis.h2Count} H2 tag{analysis.h2Count !== 1 ? 's' : ''}.
-                  Add at least 2 H2 tags to improve content structure for AI models.
-                </p>
-                <Badge className="mt-2">Medium Impact: +15 points</Badge>
-              </div>
-            </div>
-          )}
-
-          {!analysis.hasFaqSchema && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 bg-blue-50">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <p className="font-medium text-blue-900">Add FAQ Schema Markup</p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      FAQ schema helps AI models understand your content better and increases citation likelihood.
-                    </p>
-                    <Badge className="mt-2" variant="outline">High Impact: +10 points</Badge>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleGenerateFix("faq-schema", "+10 points")}
-                    disabled={loadingFix === "faq-schema"}
-                    className="shrink-0"
-                  >
-                    {loadingFix === "faq-schema" ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-1" />
-                        Fix Now
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!analysis.hasListStructure && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 bg-blue-50">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-blue-900">Add Bullet Points or Lists</p>
-                <p className="text-sm text-blue-700 mt-1">
-                  Research shows bullet points boost AI inclusion by 4.72%. Break content into scannable lists for better readability.
-                </p>
-                <Badge className="mt-2" variant="outline">Medium Impact: +5 points</Badge>
-              </div>
-            </div>
-          )}
-
-          {analysis.wordCount < 500 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50">
-              <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">Expand Content Length</p>
-                <p className="text-sm text-gray-700 mt-1">
-                  Your page has {analysis.wordCount} words. Aim for at least 500 words for better AI coverage.
-                </p>
-                <Badge className="mt-2" variant="secondary">Medium Impact: +10 points</Badge>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ResearchRecommendations
+        analysis={analysis}
+        scores={scores}
+        onGenerateFix={handleGenerateFix}
+        loadingFix={loadingFix}
+      />
 
           <PlatformCardsSection platformScores={platformScores} analysis={analysis} />
         </TabsContent>
 
         <TabsContent value="competitive" className="space-y-6 mt-6">
+          <CompetitiveGapAnalysis
+            competitor={primaryCompetitor}
+            userAnalysis={analysis}
+            userScores={scores}
+            analyzedUrl={analyzedUrl}
+          />
+
           <CompetitiveAnalysis
             competitor={primaryCompetitor}
             userAnalysis={analysis}
@@ -670,6 +588,8 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
             currentPhase={currentPhase}
             overallScore={scores.overallScore}
           />
+
+          <MonthlyMilestones currentScore={scores.overallScore} />
         </TabsContent>
       </Tabs>
 
