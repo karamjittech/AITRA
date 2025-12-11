@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Check, Info, ChevronLeft, ChevronRight, Sparkles, Table as TableIcon } from "lucide-react";
+import { Copy, Check, Info, ChevronLeft, ChevronRight, Sparkles, Table as TableIcon, Loader2 } from "lucide-react";
 import { PageAnalysis } from "@/lib/types";
 
 interface TableConversionModalProps {
@@ -166,7 +166,7 @@ export function TableConversionModal({
               >
                 {isGenerating ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     Generating Table...
                   </>
                 ) : (

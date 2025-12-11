@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertCircle, ChevronDown, Sparkles, BookOpen, TrendingUp } from "lucide-react";
+import { AlertCircle, ChevronDown, Sparkles, BookOpen, TrendingUp, Loader2 } from "lucide-react";
 import { PageAnalysis, Scores } from "@/lib/types";
 import { useState } from "react";
 
@@ -566,7 +566,7 @@ export function ResearchRecommendations({
                               ? "organization-schema"
                               : "paragraph-to-table") ? (
                               <>
-                                <span className="animate-spin mr-2">⏳</span>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                 Generating...
                               </>
                             ) : (
