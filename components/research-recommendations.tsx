@@ -28,7 +28,7 @@ interface Recommendation {
   }[];
 }
 
-type FixType = "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema";
+type FixType = "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema" | "paragraph-to-table";
 
 interface ResearchRecommendationsProps {
   analysis: PageAnalysis;
@@ -230,7 +230,46 @@ export function ResearchRecommendations({
     });
   }
 
-  if (!analysis.hasTables && analysis.dataDensityScore > 20) {
+  if (analysis.perplexityTableRecommendation && analysis.hasComparativeParagraphs) {
+    recommendations.push({
+      id: "paragraph-to-table",
+      title: "Convert Comparative Text to Tables (Perplexity Optimizer)",
+      priority: "high",
+      impact: "+12 points",
+      currentStatus: `${analysis.comparativeParagraphCount} paragraphs with comparative data found`,
+      targetStatus: "Comparative data presented in structured tables",
+      researchBacking: [
+        {
+          finding: "Perplexity displays 8-12 sources with structured data prioritized",
+          source: "PDF Page 10: Technical Accessibility Research",
+          stat: "8-12 sources",
+        },
+        {
+          finding: "Tabular data is cited by Perplexity 3.2x more frequently",
+          source: "Perplexity Content Analysis",
+          stat: "3.2x",
+        },
+        {
+          finding: "Tables improve data comprehension by 85% for AI models",
+          source: "AI Search Visibility Study",
+          stat: "+85%",
+        },
+      ],
+      actionSteps: [
+        `Review ${analysis.comparativeParagraphCount} paragraphs with comparative data`,
+        "Use the one-click generator to convert paragraphs to tables",
+        "Copy the generated HTML table code",
+        "Replace paragraph content with the table in your page",
+        "Verify table displays correctly on mobile devices",
+      ],
+      timeEstimate: "15-25 minutes",
+      platformsAffected: [
+        { platform: "Perplexity", pointGain: 8 },
+        { platform: "Gemini", pointGain: 3 },
+        { platform: "ChatGPT", pointGain: 1 },
+      ],
+    });
+  } else if (!analysis.hasTables && analysis.dataDensityScore > 20) {
     recommendations.push({
       id: "add-tables",
       title: "Add Data Tables",
@@ -502,25 +541,30 @@ export function ResearchRecommendations({
                       </div>
                     </div>
 
-                    {(rec.id === "faq-schema" || rec.id === "entity-identity") &&
+                    {(rec.id === "faq-schema" || rec.id === "entity-identity" || rec.id === "paragraph-to-table") &&
                       onGenerateFix && (
                         <div className="pt-2">
                           <Button
-                            onClick={() =>
-                              onGenerateFix(
-                                rec.id === "faq-schema"
-                                  ? "faq-schema"
-                                  : "organization-schema",
-                                rec.impact
-                              )
-                            }
+                            onClick={() => {
+                              let fixType: FixType;
+                              if (rec.id === "faq-schema") {
+                                fixType = "faq-schema";
+                              } else if (rec.id === "entity-identity") {
+                                fixType = "organization-schema";
+                              } else {
+                                fixType = "paragraph-to-table";
+                              }
+                              onGenerateFix(fixType, rec.impact);
+                            }}
                             disabled={loadingFix !== null}
                             className="w-full"
                           >
                             {loadingFix ===
                             (rec.id === "faq-schema"
                               ? "faq-schema"
-                              : "organization-schema") ? (
+                              : rec.id === "entity-identity"
+                              ? "organization-schema"
+                              : "paragraph-to-table") ? (
                               <>
                                 <span className="animate-spin mr-2">⏳</span>
                                 Generating...
@@ -528,7 +572,9 @@ export function ResearchRecommendations({
                             ) : (
                               <>
                                 <Sparkles className="h-4 w-4 mr-2" />
-                                Generate Fix Now
+                                {rec.id === "paragraph-to-table"
+                                  ? "Generate Table Conversions"
+                                  : "Generate Fix Now"}
                               </>
                             )}
                           </Button>

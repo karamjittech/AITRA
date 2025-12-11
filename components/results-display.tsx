@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OverallScore, ScoreDisplay } from "./score-display";
 import { PlatformCardsSection } from "./platform-cards-section";
 import { FixModal } from "./fix-modal";
+import { TableConversionModal } from "./table-conversion-modal";
 import { CompetitiveAnalysis } from "./competitive-analysis";
 import { CompetitiveGapAnalysis } from "./competitive-gap-analysis";
 import { RoadmapVisualization } from "./roadmap-visualization";
@@ -36,6 +37,7 @@ interface ResultsDisplayProps {
 export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, pageId }: ResultsDisplayProps) {
   const [loadingFix, setLoadingFix] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [tableModalOpen, setTableModalOpen] = useState(false);
   const [currentFix, setCurrentFix] = useState<any>(null);
   const [currentFixType, setCurrentFixType] = useState<string>("");
   const [currentFixImpact, setCurrentFixImpact] = useState<string>("");
@@ -103,9 +105,14 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   };
 
   const handleGenerateFix = async (
-    fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema",
+    fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema" | "paragraph-to-table",
     impact: string
   ) => {
+    if (fixType === "paragraph-to-table") {
+      setTableModalOpen(true);
+      return;
+    }
+
     setLoadingFix(fixType);
 
     try {
@@ -599,6 +606,13 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
         fixType={currentFixType}
         generatedContent={currentFix}
         impact={currentFixImpact}
+      />
+
+      <TableConversionModal
+        open={tableModalOpen}
+        onOpenChange={setTableModalOpen}
+        analysis={analysis}
+        pageId={pageId || "00000000-0000-0000-0000-000000000001"}
       />
     </div>
   );

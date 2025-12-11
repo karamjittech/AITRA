@@ -36,6 +36,15 @@ export interface PageAnalysis {
   introDensityScore: number;
   hasTldr: boolean;
   aeoScore: number;
+  hasComparativeParagraphs: boolean;
+  comparativeDataScore: number;
+  comparativeParagraphCount: number;
+  perplexityTableRecommendation: boolean;
+  comparativeContentSamples: Array<{
+    text: string;
+    type: string;
+    confidence: number;
+  }>;
 }
 
 export interface Scores {

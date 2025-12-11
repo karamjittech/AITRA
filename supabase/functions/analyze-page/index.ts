@@ -50,6 +50,15 @@ interface PageAnalysis {
   introDensityScore: number;
   hasTldr: boolean;
   aeoScore: number;
+  hasComparativeParagraphs: boolean;
+  comparativeDataScore: number;
+  comparativeParagraphCount: number;
+  perplexityTableRecommendation: boolean;
+  comparativeContentSamples: Array<{
+    text: string;
+    type: string;
+    confidence: number;
+  }>;
 }
 
 interface Scores {
@@ -303,6 +312,11 @@ Deno.serve(async (req: Request) => {
           intro_density_score: analysis.introDensityScore,
           has_tldr: analysis.hasTldr,
           aeo_score: analysis.aeoScore,
+          has_comparative_paragraphs: analysis.hasComparativeParagraphs,
+          comparative_data_score: analysis.comparativeDataScore,
+          comparative_paragraph_count: analysis.comparativeParagraphCount,
+          perplexity_table_recommendation: analysis.perplexityTableRecommendation,
+          comparative_content_samples: analysis.comparativeContentSamples,
           last_scraped: new Date().toISOString(),
         })
         .eq("id", existingPage.data.id);
@@ -346,6 +360,11 @@ Deno.serve(async (req: Request) => {
           intro_density_score: analysis.introDensityScore,
           has_tldr: analysis.hasTldr,
           aeo_score: analysis.aeoScore,
+          has_comparative_paragraphs: analysis.hasComparativeParagraphs,
+          comparative_data_score: analysis.comparativeDataScore,
+          comparative_paragraph_count: analysis.comparativeParagraphCount,
+          perplexity_table_recommendation: analysis.perplexityTableRecommendation,
+          comparative_content_samples: analysis.comparativeContentSamples,
           last_scraped: new Date().toISOString(),
         })
         .select("id")
@@ -728,6 +747,8 @@ function analyzeHTML(html: string): PageAnalysis {
 
   const aeoScore = calculateAEOScore(qaPairsCount, listDensity, tableCount, introFluffScore);
 
+  const comparativeData = detectComparativeData(html, paragraphs);
+
   return {
     title,
     metaDescription,
@@ -766,6 +787,104 @@ function analyzeHTML(html: string): PageAnalysis {
     introDensityScore,
     hasTldr,
     aeoScore,
+    hasComparativeParagraphs: comparativeData.hasComparativeParagraphs,
+    comparativeDataScore: comparativeData.comparativeDataScore,
+    comparativeParagraphCount: comparativeData.comparativeParagraphCount,
+    perplexityTableRecommendation: comparativeData.perplexityTableRecommendation,
+    comparativeContentSamples: comparativeData.comparativeContentSamples,
+  };
+}
+
+function detectComparativeData(html: string, paragraphs: string[]) {
+  const comparativePatterns = [
+    /\b(vs\.?|versus|compared to|while|whereas|but|however|in contrast|on the other hand)\b/gi,
+    /\$\d+[,\d]*(\.\d{2})?\s*(vs\.?|versus|compared to|while)\s*\$\d+[,\d]*(\.\d{2})?/gi,
+    /\b\d+\s*(GB|MB|TB|hours?|minutes?|days?|%|percent)\s*(vs\.?|versus|while|whereas)\s*\d+\s*(GB|MB|TB|hours?|minutes?|days?|%|percent)/gi,
+    /\b(option|plan|tier|package|product|model|version)\s+[A-Z0-9]+\s*(vs\.?|versus|compared to)\s*(option|plan|tier|package|product|model|version)\s+[A-Z0-9]+/gi,
+    /\b(faster|slower|cheaper|expensive|better|worse|more|less|higher|lower)\s+than\b/gi,
+  ];
+
+  const pricingPatterns = [
+    /\$\d+[,\d]*(\.\d{2})?/g,
+    /\b\d+\s*USD|EUR|GBP\b/gi,
+    /\bfree|paid|premium|basic|pro|enterprise\b/gi,
+  ];
+
+  const featurePatterns = [
+    /\b(includes?|features?|offers?|provides?|supports?|has|comes with)\b/gi,
+    /\b(available in|only in|exclusive to|limited to)\b/gi,
+  ];
+
+  const comparativeContentSamples: Array<{ text: string; type: string; confidence: number }> = [];
+  let totalComparativeScore = 0;
+  let comparativeParagraphCount = 0;
+
+  paragraphs.forEach((p) => {
+    const pText = p.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const pWords = pText.split(/\s+/).filter((w) => w.length > 0);
+
+    if (pWords.length < 20 || pWords.length > 200) return;
+
+    let paragraphScore = 0;
+    let matchType = '';
+
+    comparativePatterns.forEach((pattern) => {
+      const matches = pText.match(pattern);
+      if (matches) {
+        paragraphScore += matches.length * 15;
+        matchType = 'comparison';
+      }
+    });
+
+    const priceMatches = pText.match(pricingPatterns[0]);
+    if (priceMatches && priceMatches.length >= 2) {
+      paragraphScore += 25;
+      matchType = matchType || 'pricing';
+    }
+
+    const featureMatches = pText.match(featurePatterns[0]);
+    if (featureMatches && featureMatches.length >= 2) {
+      paragraphScore += 10;
+      matchType = matchType || 'features';
+    }
+
+    const hasMultipleNumbers = (pText.match(/\b\d+\b/g) || []).length >= 3;
+    const hasUnits = /\b(GB|MB|TB|hours?|minutes?|days?|%|percent)\b/gi.test(pText);
+    if (hasMultipleNumbers && hasUnits) {
+      paragraphScore += 20;
+      matchType = matchType || 'metrics';
+    }
+
+    if (paragraphScore >= 25) {
+      comparativeParagraphCount++;
+      totalComparativeScore += paragraphScore;
+
+      if (comparativeContentSamples.length < 5) {
+        comparativeContentSamples.push({
+          text: pText.substring(0, 250),
+          type: matchType,
+          confidence: Math.min(100, paragraphScore),
+        });
+      }
+    }
+  });
+
+  const hasComparativeParagraphs = comparativeParagraphCount > 0;
+  const comparativeDataScore = paragraphs.length > 0
+    ? Math.min(100, (totalComparativeScore / paragraphs.length) * 2)
+    : 0;
+
+  const perplexityTableRecommendation =
+    hasComparativeParagraphs &&
+    comparativeParagraphCount >= 2 &&
+    comparativeDataScore >= 30;
+
+  return {
+    hasComparativeParagraphs,
+    comparativeDataScore: Math.round(comparativeDataScore * 10) / 10,
+    comparativeParagraphCount,
+    perplexityTableRecommendation,
+    comparativeContentSamples,
   };
 }
 
@@ -1189,7 +1308,19 @@ function calculatePerplexityData(analysis: PageAnalysis): number {
     score += 5;
   }
 
-  return Math.min(45, score);
+  if (analysis.tableCount >= 2 && analysis.tableCount <= 3) {
+    score += 15;
+  } else if (analysis.tableCount === 1) {
+    score += 10;
+  } else if (analysis.tableCount >= 4) {
+    score += 12;
+  }
+
+  if (analysis.hasComparativeParagraphs && !analysis.hasTables) {
+    score -= 8;
+  }
+
+  return Math.min(60, Math.max(0, score));
 }
 
 function generateMockCompetitors(userScore: number, userWordCount: number) {
