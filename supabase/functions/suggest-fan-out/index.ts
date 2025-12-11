@@ -139,7 +139,7 @@ Relevance scores should be 75-100.`;
     ],
     generationConfig: {
       temperature: 0.8,
-      maxOutputTokens: 512,
+      maxOutputTokens: 2048,
     },
   };
 
