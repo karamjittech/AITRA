@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || "AIzaSyDBs1KgVq8qk0SfF3L8V-uUd_xSVo-5EBA";
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 interface SuggestFanOutRequest {
   mainKeyword: string;
@@ -78,9 +78,9 @@ Deno.serve(async (req: Request) => {
 });
 
 async function generateFanOutKeywords(mainKeyword: string): Promise<KeywordSuggestion[]> {
-  const prompt = `Generate 5 AI-search optimized fan-out keyword queries for the main keyword: "${mainKeyword}"
+  const prompt = `Generate 5 related search keyword variations for: "${mainKeyword}"
 
-These queries should represent how AI models (ChatGPT, Claude, Gemini, Perplexity) internally process and expand user searches. Include:
+Create diverse query types:
 
 1. Informational query (what/why/how) - Seeks understanding or definitions
 2. Comparative query (vs/best/top) - Compares options or alternatives
@@ -90,12 +90,11 @@ These queries should represent how AI models (ChatGPT, Claude, Gemini, Perplexit
 
 Requirements:
 - Each query should be 2-6 words
-- Use natural, conversational language (as users would type)
-- Avoid overly formal or technical phrasing
+- Use natural, conversational language
 - Include question words where appropriate (what, how, when, why, which)
 - Ensure queries are distinct and cover different search intents
 
-Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
+Respond with valid JSON only (no markdown, no code blocks):
 {
   "suggestions": [
     {
@@ -126,7 +125,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
   ]
 }
 
-Relevance scores should be 75-100, with more popular/common queries scoring higher.`;
+Relevance scores should be 75-100.`;
 
   const requestBody = {
     contents: [
@@ -159,10 +158,33 @@ Relevance scores should be 75-100, with more popular/common queries scoring high
   }
 
   const data = await response.json();
-  const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  console.log("Full Gemini API response:", JSON.stringify(data, null, 2));
+
+  if (!data.candidates || data.candidates.length === 0) {
+    console.error("No candidates in Gemini response");
+    throw new Error("Gemini API returned no candidates. This may be due to safety filters or API issues.");
+  }
+
+  const candidate = data.candidates[0];
+  const finishReason = candidate.finishReason;
+
+  if (finishReason && finishReason !== "STOP") {
+    console.error("Gemini blocked content. Finish reason:", finishReason);
+    if (finishReason === "SAFETY") {
+      throw new Error("Content was blocked by Gemini safety filters. Try a different keyword.");
+    } else if (finishReason === "RECITATION") {
+      throw new Error("Content was blocked due to recitation concerns. Try rephrasing.");
+    } else {
+      throw new Error(`Content generation stopped: ${finishReason}`);
+    }
+  }
+
+  const generatedText = candidate.content?.parts?.[0]?.text;
 
   if (!generatedText) {
-    throw new Error("No content generated from Gemini");
+    console.error("No text in Gemini response. Candidate:", JSON.stringify(candidate, null, 2));
+    throw new Error("Gemini did not generate any text content. Please try again.");
   }
 
   const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
