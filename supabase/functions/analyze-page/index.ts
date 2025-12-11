@@ -39,6 +39,17 @@ interface PageAnalysis {
   sameAsPlatforms: string[];
   entityType: string;
   entityIdentityScore: number;
+  qaPairsCount: number;
+  hasDirectAnswers: boolean;
+  listDensity: number;
+  ulCount: number;
+  olCount: number;
+  tableCount: number;
+  hasTables: boolean;
+  introFluffScore: number;
+  introDensityScore: number;
+  hasTldr: boolean;
+  aeoScore: number;
 }
 
 interface Scores {
@@ -46,6 +57,7 @@ interface Scores {
   metadataScore: number;
   contentScore: number;
   schemaScore: number;
+  aeoScore: number;
   overallScore: number;
 }
 
@@ -280,6 +292,17 @@ Deno.serve(async (req: Request) => {
           same_as_platforms: analysis.sameAsPlatforms,
           entity_type: analysis.entityType,
           entity_identity_score: analysis.entityIdentityScore,
+          qa_pairs_count: analysis.qaPairsCount,
+          has_direct_answers: analysis.hasDirectAnswers,
+          list_density: analysis.listDensity,
+          ul_count: analysis.ulCount,
+          ol_count: analysis.olCount,
+          table_count: analysis.tableCount,
+          has_tables: analysis.hasTables,
+          intro_fluff_score: analysis.introFluffScore,
+          intro_density_score: analysis.introDensityScore,
+          has_tldr: analysis.hasTldr,
+          aeo_score: analysis.aeoScore,
           last_scraped: new Date().toISOString(),
         })
         .eq("id", existingPage.data.id);
@@ -312,6 +335,17 @@ Deno.serve(async (req: Request) => {
           same_as_platforms: analysis.sameAsPlatforms,
           entity_type: analysis.entityType,
           entity_identity_score: analysis.entityIdentityScore,
+          qa_pairs_count: analysis.qaPairsCount,
+          has_direct_answers: analysis.hasDirectAnswers,
+          list_density: analysis.listDensity,
+          ul_count: analysis.ulCount,
+          ol_count: analysis.olCount,
+          table_count: analysis.tableCount,
+          has_tables: analysis.hasTables,
+          intro_fluff_score: analysis.introFluffScore,
+          intro_density_score: analysis.introDensityScore,
+          has_tldr: analysis.hasTldr,
+          aeo_score: analysis.aeoScore,
           last_scraped: new Date().toISOString(),
         })
         .select("id")
@@ -355,6 +389,7 @@ Deno.serve(async (req: Request) => {
         metadata_score: scores.metadataScore,
         content_score: scores.contentScore,
         citation_pattern_score: scores.schemaScore,
+        aeo_score: scores.aeoScore,
         overall_ai_readiness: scores.overallScore,
         calculated_at: new Date().toISOString(),
       })
@@ -666,6 +701,33 @@ function analyzeHTML(html: string): PageAnalysis {
     entityIdentityScore += 7;
   }
 
+  const qaPairsCount = detectQAPairs(html);
+  const hasDirectAnswers = qaPairsCount > 0;
+
+  const ulCount = (html.match(/<ul[^>]*>/gi) || []).length;
+  const olCount = (html.match(/<ol[^>]*>/gi) || []).length;
+  const totalListItems = (html.match(/<li[^>]*>/gi) || []).length;
+  const listDensity = wordCount > 0 ? (totalListItems / (wordCount / 20)) * 100 : 0;
+
+  const tableMatches = html.match(/<table[^>]*>[\s\S]*?<\/table>/gi) || [];
+  let tableCount = 0;
+  tableMatches.forEach(table => {
+    const rows = (table.match(/<tr[^>]*>/gi) || []).length;
+    const cols = (table.match(/<td[^>]*>/gi) || []).length / (rows || 1);
+    if (rows > 2 && cols > 2) {
+      tableCount++;
+    }
+  });
+  const hasTables = tableCount > 0;
+
+  const first100Words = words.slice(0, 100).join(' ');
+  const introFluffScore = calculateFluffScore(first100Words);
+  const introDensityScore = 100 - introFluffScore;
+
+  const hasTldr = /\b(tl;?dr|key takeaways?|summary|in brief|quick summary)\b/i.test(textContent);
+
+  const aeoScore = calculateAEOScore(qaPairsCount, listDensity, tableCount, introFluffScore);
+
   return {
     title,
     metaDescription,
@@ -693,6 +755,17 @@ function analyzeHTML(html: string): PageAnalysis {
     sameAsPlatforms: [...new Set(sameAsPlatforms)],
     entityType,
     entityIdentityScore,
+    qaPairsCount,
+    hasDirectAnswers,
+    listDensity: Math.min(100, listDensity),
+    ulCount,
+    olCount,
+    tableCount,
+    hasTables,
+    introFluffScore,
+    introDensityScore,
+    hasTldr,
+    aeoScore,
   };
 }
 
@@ -747,6 +820,108 @@ function countSyllables(text: string): number {
   return totalSyllables;
 }
 
+function detectQAPairs(html: string): number {
+  let qaPairCount = 0;
+
+  const headingMatches = html.match(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi) || [];
+  const questionPatterns = /^(what|how|why|when|where|who|which|can|is|are|does|do|will|would|should)\b|\?$/i;
+
+  for (let i = 0; i < headingMatches.length; i++) {
+    const headingText = headingMatches[i].replace(/<[^>]+>/g, '').trim();
+
+    if (questionPatterns.test(headingText)) {
+      const headingIndex = html.indexOf(headingMatches[i]);
+      const nextHeadingIndex = i < headingMatches.length - 1
+        ? html.indexOf(headingMatches[i + 1], headingIndex + headingMatches[i].length)
+        : html.length;
+
+      const contentBetween = html.substring(headingIndex + headingMatches[i].length, nextHeadingIndex);
+      const hasParagraph = /<p[^>]*>.*?<\/p>/i.test(contentBetween);
+
+      if (hasParagraph) {
+        qaPairCount++;
+      }
+    }
+  }
+
+  return qaPairCount;
+}
+
+function calculateFluffScore(text: string): number {
+  const fluffPhrases = [
+    /in today's (digital|modern|fast-paced) (world|age|era|landscape)/i,
+    /in this article/i,
+    /let's explore/i,
+    /we will (discuss|explore|examine|look at)/i,
+    /it is important to (note|understand|recognize)/i,
+    /as (we all know|you (may )?know)/i,
+    /have you ever wondered/i,
+    /in recent years/i,
+    /over the (past|last) (few|several) (years|decades)/i,
+    /throughout history/i,
+    /without further ado/i,
+    /first and foremost/i,
+    /at the end of the day/i,
+  ];
+
+  let fluffCount = 0;
+  const words = text.split(/\s+/).length;
+
+  if (words === 0) return 0;
+
+  fluffPhrases.forEach(pattern => {
+    const matches = text.match(pattern);
+    if (matches) {
+      fluffCount += matches[0].split(/\s+/).length;
+    }
+  });
+
+  const fluffPercentage = (fluffCount / words) * 100;
+
+  return Math.min(100, fluffPercentage * 5);
+}
+
+function calculateAEOScore(
+  qaPairsCount: number,
+  listDensity: number,
+  tableCount: number,
+  introFluffScore: number
+): number {
+  let directAnswersScore = 0;
+  if (qaPairsCount >= 5) {
+    directAnswersScore = 8;
+  } else if (qaPairsCount >= 2) {
+    directAnswersScore = 5;
+  } else if (qaPairsCount >= 1) {
+    directAnswersScore = 3;
+  }
+
+  let listScore = 0;
+  if (listDensity >= 15 && listDensity <= 30) {
+    listScore = 7;
+  } else if (listDensity >= 5 && listDensity < 15) {
+    listScore = 4;
+  } else if (listDensity > 0 && listDensity < 5) {
+    listScore = 1;
+  }
+
+  let tableScore = 0;
+  if (tableCount >= 2) {
+    tableScore = 6;
+  } else if (tableCount === 1) {
+    tableScore = 4;
+  }
+
+  let introScore = 0;
+  if (introFluffScore <= 20) {
+    introScore = 4;
+  } else if (introFluffScore <= 50) {
+    introScore = 2;
+  }
+
+  return directAnswersScore + listScore + tableScore + introScore;
+}
+
 function calculateScores(analysis: PageAnalysis): Scores {
   let structureScore = 0;
   if (analysis.h1Count === 1) {
@@ -796,17 +971,21 @@ function calculateScores(analysis: PageAnalysis): Scores {
     schemaScore += 10;
   }
 
+  const aeoScore = analysis.aeoScore;
+
   const overallScore =
-    structureScore * 0.3 +
-    metadataScore * 0.25 +
-    contentScore * 0.25 +
-    schemaScore * 0.2;
+    structureScore * 0.25 +
+    metadataScore * 0.2 +
+    contentScore * 0.2 +
+    schemaScore * 0.2 +
+    aeoScore * 0.15;
 
   return {
     structureScore,
     metadataScore,
     contentScore,
     schemaScore,
+    aeoScore,
     overallScore: Math.round(overallScore * 10) / 10,
   };
 }

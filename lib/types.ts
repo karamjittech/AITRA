@@ -25,6 +25,17 @@ export interface PageAnalysis {
   sameAsPlatforms: string[];
   entityType: string;
   entityIdentityScore: number;
+  qaPairsCount: number;
+  hasDirectAnswers: boolean;
+  listDensity: number;
+  ulCount: number;
+  olCount: number;
+  tableCount: number;
+  hasTables: boolean;
+  introFluffScore: number;
+  introDensityScore: number;
+  hasTldr: boolean;
+  aeoScore: number;
 }
 
 export interface Scores {
@@ -32,6 +43,7 @@ export interface Scores {
   metadataScore: number;
   contentScore: number;
   schemaScore: number;
+  aeoScore: number;
   overallScore: number;
 }
 

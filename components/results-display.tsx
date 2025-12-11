@@ -13,6 +13,7 @@ import { CompetitiveAnalysis } from "./competitive-analysis";
 import { RoadmapVisualization } from "./roadmap-visualization";
 import { BotAccessCard } from "./bot-access-card";
 import { EntityIdentityCard } from "./entity-identity-card";
+import { AEOScoreCard } from "./aeo-score-card";
 import { PageAnalysis, Scores, PlatformScores, CompetitorData, BotAccessStatus } from "@/lib/types";
 import { generateMockCompetitors, selectPrimaryCompetitor } from "@/lib/mock-competitors";
 import { generateRoadmapPhases, calculateCurrentPhase } from "@/lib/phase-calculator";
@@ -219,6 +220,12 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
                 maxScore={20}
                 color={getScoreColor(scores.schemaScore, 20)}
               />
+              <ScoreDisplay
+                score={scores.aeoScore}
+                label="AEO Score"
+                maxScore={25}
+                color={getScoreColor(scores.aeoScore, 25)}
+              />
             </CardContent>
           </Card>
         </div>
@@ -250,6 +257,8 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
           }}
         />
       </div>
+
+      <AEOScoreCard analysis={analysis} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
