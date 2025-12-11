@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { OverallScore, ScoreDisplay } from "./score-display";
 import { PageAnalysis, Scores } from "@/lib/types";
-import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2 } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List } from "lucide-react";
 
 interface ResultsDisplayProps {
   analysis: PageAnalysis;
@@ -47,8 +47,8 @@ export function ResultsDisplay({ analysis, scores, analyzedUrl }: ResultsDisplay
               <ScoreDisplay
                 score={scores.structureScore}
                 label="Structure Score"
-                maxScore={30}
-                color={getScoreColor(scores.structureScore, 30)}
+                maxScore={35}
+                color={getScoreColor(scores.structureScore, 35)}
               />
               <ScoreDisplay
                 score={scores.metadataScore}
@@ -161,6 +161,28 @@ export function ResultsDisplay({ analysis, scores, analyzedUrl }: ResultsDisplay
                   </p>
                 </div>
               </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <List className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">List Structure</span>
+              </div>
+              <Badge variant={analysis.hasListStructure ? "default" : "secondary"}>
+                {analysis.hasListStructure ? (
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Detected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    Not Found
+                  </span>
+                )}
+              </Badge>
             </div>
 
             <Separator />
@@ -288,6 +310,19 @@ export function ResultsDisplay({ analysis, scores, analyzedUrl }: ResultsDisplay
                   FAQ schema helps AI models understand your content better and increases citation likelihood.
                 </p>
                 <Badge className="mt-2" variant="outline">High Impact: +10 points</Badge>
+              </div>
+            </div>
+          )}
+
+          {!analysis.hasListStructure && (
+            <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 bg-blue-50">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium text-blue-900">Add Bullet Points or Lists</p>
+                <p className="text-sm text-blue-700 mt-1">
+                  Research shows bullet points boost AI inclusion by 4.72%. Break content into scannable lists for better readability.
+                </p>
+                <Badge className="mt-2" variant="outline">Medium Impact: +5 points</Badge>
               </div>
             </div>
           )}

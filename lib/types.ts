@@ -7,6 +7,7 @@ export interface PageAnalysis {
   hasFaqSchema: boolean;
   hasHowtoSchema: boolean;
   hasArticleSchema: boolean;
+  hasListStructure: boolean;
   readabilityScore: number;
 }
 

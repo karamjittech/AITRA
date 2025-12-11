@@ -21,6 +21,7 @@ interface PageAnalysis {
   hasFaqSchema: boolean;
   hasHowtoSchema: boolean;
   hasArticleSchema: boolean;
+  hasListStructure: boolean;
   readabilityScore: number;
 }
 
@@ -203,6 +204,7 @@ Deno.serve(async (req: Request) => {
           h2_count: analysis.h2Count,
           has_faq_schema: analysis.hasFaqSchema,
           has_howto_schema: analysis.hasHowtoSchema,
+          has_list_structure: analysis.hasListStructure,
           readability_score: analysis.readabilityScore,
           last_scraped: new Date().toISOString(),
         })
@@ -228,6 +230,7 @@ Deno.serve(async (req: Request) => {
           h2_count: analysis.h2Count,
           has_faq_schema: analysis.hasFaqSchema,
           has_howto_schema: analysis.hasHowtoSchema,
+          has_list_structure: analysis.hasListStructure,
           readability_score: analysis.readabilityScore,
           last_scraped: new Date().toISOString(),
         })
@@ -333,6 +336,12 @@ function analyzeHTML(html: string): PageAnalysis {
     html.includes("NewsArticle") ||
     html.includes("BlogPosting");
 
+  const hasListStructure =
+    html.includes("<ul") ||
+    html.includes("<ol") ||
+    html.includes("<UL") ||
+    html.includes("<OL");
+
   const readabilityScore = calculateReadabilityScore(textContent, wordCount);
 
   return {
@@ -344,6 +353,7 @@ function analyzeHTML(html: string): PageAnalysis {
     hasFaqSchema,
     hasHowtoSchema,
     hasArticleSchema,
+    hasListStructure,
     readabilityScore,
   };
 }
@@ -406,6 +416,9 @@ function calculateScores(analysis: PageAnalysis): Scores {
   }
   if (analysis.h2Count >= 2) {
     structureScore += 15;
+  }
+  if (analysis.hasListStructure) {
+    structureScore += 5;
   }
 
   let metadataScore = 0;
