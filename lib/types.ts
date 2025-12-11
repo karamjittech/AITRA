@@ -131,3 +131,36 @@ export interface MonthlyMilestone {
   expectedScore: string;
   keyMilestones: string[];
 }
+
+export type BotName = 'GPTBot' | 'CCBot' | 'Google-Extended' | 'FacebookBot' | 'PerplexityBot';
+
+export type BlockReason = 'robots_txt' | 'firewall' | 'user_agent_block' | null;
+
+export interface BotAccessStatus {
+  id: string;
+  pageId: string;
+  botName: BotName;
+  isAllowed: boolean;
+  blockReason: BlockReason;
+  robotsTxtRule: string | null;
+  checkedAt: string;
+}
+
+export interface BotAccessSummary {
+  gptBot: BotAccessStatus | null;
+  ccBot: BotAccessStatus | null;
+  googleExtended: BotAccessStatus | null;
+  facebookBot: BotAccessStatus | null;
+  perplexityBot: BotAccessStatus | null;
+  totalAllowed: number;
+  totalBlocked: number;
+  scorePenalty: number;
+}
+
+export interface BotInfo {
+  name: BotName;
+  displayName: string;
+  description: string;
+  userAgent: string;
+  platform: string;
+}

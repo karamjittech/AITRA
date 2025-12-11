@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,14 @@ import { PlatformCardsSection } from "./platform-cards-section";
 import { FixModal } from "./fix-modal";
 import { CompetitiveAnalysis } from "./competitive-analysis";
 import { RoadmapVisualization } from "./roadmap-visualization";
-import { PageAnalysis, Scores, PlatformScores, CompetitorData } from "@/lib/types";
+import { BotAccessCard } from "./bot-access-card";
+import { PageAnalysis, Scores, PlatformScores, CompetitorData, BotAccessStatus } from "@/lib/types";
 import { generateMockCompetitors, selectPrimaryCompetitor } from "@/lib/mock-competitors";
 import { generateRoadmapPhases, calculateCurrentPhase } from "@/lib/phase-calculator";
+import { calculateBotPenalty } from "@/lib/bot-verification";
 import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/utils/supabase/client";
 
 interface ResultsDisplayProps {
   analysis: PageAnalysis;
@@ -31,7 +34,46 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   const [currentFix, setCurrentFix] = useState<any>(null);
   const [currentFixType, setCurrentFixType] = useState<string>("");
   const [currentFixImpact, setCurrentFixImpact] = useState<string>("");
+  const [botAccessData, setBotAccessData] = useState<BotAccessStatus[]>([]);
+  const [loadingBotData, setLoadingBotData] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function fetchBotAccessData() {
+      if (!pageId) {
+        setLoadingBotData(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('bot_access')
+          .select('*')
+          .eq('page_id', pageId);
+
+        if (error) {
+          console.error('Error fetching bot access data:', error);
+        } else if (data) {
+          const transformedData: BotAccessStatus[] = (data as any[]).map((item: any) => ({
+            id: item.id,
+            pageId: item.page_id,
+            botName: item.bot_name,
+            isAllowed: item.is_allowed,
+            blockReason: item.block_reason,
+            robotsTxtRule: item.robots_txt_rule,
+            checkedAt: item.checked_at,
+          }));
+          setBotAccessData(transformedData);
+        }
+      } catch (error) {
+        console.error('Error fetching bot access data:', error);
+      } finally {
+        setLoadingBotData(false);
+      }
+    }
+
+    fetchBotAccessData();
+  }, [pageId]);
 
   const competitors = generateMockCompetitors(
     scores.overallScore,
@@ -174,6 +216,13 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
           </Card>
         </div>
       </div>
+
+      {!loadingBotData && botAccessData.length > 0 && (
+        <BotAccessCard
+          botAccessData={botAccessData}
+          scorePenalty={calculateBotPenalty(botAccessData.filter(b => !b.isAllowed).length)}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>

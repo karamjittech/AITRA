@@ -58,6 +58,28 @@ interface PlatformScores {
   perplexityDataComponent: number;
 }
 
+type BotName = 'GPTBot' | 'CCBot' | 'Google-Extended' | 'FacebookBot' | 'PerplexityBot';
+
+interface BotVerificationResult {
+  botName: BotName;
+  isAllowed: boolean;
+  blockReason: string | null;
+  robotsTxtRule: string | null;
+}
+
+interface ParsedRobotsTxt {
+  rules: Map<string, { userAgent: string; disallow: string[]; allow: string[] }>;
+  hasWildcard: boolean;
+}
+
+const BOT_CONFIGS = [
+  { name: 'GPTBot' as BotName, userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.0; +https://openai.com/gptbot)' },
+  { name: 'CCBot' as BotName, userAgent: 'CCBot/2.0 (https://commoncrawl.org/faq/)' },
+  { name: 'Google-Extended' as BotName, userAgent: 'Mozilla/5.0 (compatible; Google-Extended)' },
+  { name: 'FacebookBot' as BotName, userAgent: 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)' },
+  { name: 'PerplexityBot' as BotName, userAgent: 'PerplexityBot/1.0 (+https://perplexity.ai/bot)' }
+];
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -158,6 +180,17 @@ Deno.serve(async (req: Request) => {
     console.log("Calculating platform-specific scores...");
     const platformScores = calculatePlatformScores(analysis);
     console.log("Platform scores calculated:", platformScores);
+
+    console.log("Verifying bot access...");
+    const botVerificationResults = await verifyBotAccess(domain, url);
+    console.log("Bot verification complete:", botVerificationResults);
+
+    const blockedBotsCount = botVerificationResults.filter(r => !r.isAllowed).length;
+    const botPenalty = calculateBotPenalty(blockedBotsCount);
+    console.log(`Blocked bots: ${blockedBotsCount}, Penalty: ${botPenalty}`);
+
+    const adjustedOverallScore = Math.max(0, scores.overallScore - botPenalty);
+    scores.overallScore = Math.round(adjustedOverallScore * 10) / 10;
 
     console.log("Checking for existing website record...");
     const websiteRecord = await supabase
@@ -273,6 +306,27 @@ Deno.serve(async (req: Request) => {
       pageId = newPage.data.id;
       console.log("Page created with ID:", pageId);
     }
+
+    console.log("Storing bot access verification results...");
+    for (const botResult of botVerificationResults) {
+      const botAccessInsert = await supabase
+        .from("bot_access")
+        .upsert({
+          page_id: pageId,
+          bot_name: botResult.botName,
+          is_allowed: botResult.isAllowed,
+          block_reason: botResult.blockReason,
+          robots_txt_rule: botResult.robotsTxtRule,
+          checked_at: new Date().toISOString(),
+        }, {
+          onConflict: 'page_id,bot_name'
+        });
+
+      if (botAccessInsert.error) {
+        console.error(`Error storing bot access for ${botResult.botName}:`, botAccessInsert.error);
+      }
+    }
+    console.log("Bot access data stored successfully");
 
     console.log("Inserting score record...");
     const scoreInsert = await supabase
@@ -951,4 +1005,215 @@ function estimateWeeksToComplete(currentScore: number): number {
   } else {
     return 4;
   }
+}
+
+async function verifyBotAccess(domain: string, pageUrl: string): Promise<BotVerificationResult[]> {
+  const results: BotVerificationResult[] = [];
+
+  try {
+    const robotsTxtUrl = `https://${domain}/robots.txt`;
+    console.log(`Fetching robots.txt from ${robotsTxtUrl}`);
+
+    const robotsResponse = await fetch(robotsTxtUrl, {
+      signal: AbortSignal.timeout(5000),
+    });
+
+    let parsedRobots: ParsedRobotsTxt | null = null;
+
+    if (robotsResponse.ok) {
+      const robotsTxtContent = await robotsResponse.text();
+      parsedRobots = parseRobotsTxt(robotsTxtContent);
+    } else {
+      console.log(`No robots.txt found (${robotsResponse.status}), assuming all bots allowed`);
+    }
+
+    for (const bot of BOT_CONFIGS) {
+      let isAllowed = true;
+      let blockReason: string | null = null;
+      let robotsTxtRule: string | null = null;
+
+      if (parsedRobots) {
+        const robotsCheck = checkBotAllowedInRobotsTxt(bot.name, parsedRobots, new URL(pageUrl).pathname);
+        if (!robotsCheck.allowed) {
+          isAllowed = false;
+          blockReason = 'robots_txt';
+          robotsTxtRule = robotsCheck.rule;
+        }
+      }
+
+      if (isAllowed) {
+        try {
+          const headResponse = await fetch(pageUrl, {
+            method: 'HEAD',
+            headers: {
+              'User-Agent': bot.userAgent,
+            },
+            signal: AbortSignal.timeout(3000),
+          });
+
+          if (headResponse.status === 403) {
+            isAllowed = false;
+            blockReason = 'firewall';
+          }
+        } catch (error) {
+          console.log(`HEAD request failed for ${bot.name}, assuming allowed:`, error);
+        }
+      }
+
+      results.push({
+        botName: bot.name,
+        isAllowed,
+        blockReason,
+        robotsTxtRule,
+      });
+    }
+  } catch (error) {
+    console.error('Error during bot verification:', error);
+    for (const bot of BOT_CONFIGS) {
+      results.push({
+        botName: bot.name,
+        isAllowed: true,
+        blockReason: null,
+        robotsTxtRule: null,
+      });
+    }
+  }
+
+  return results;
+}
+
+function parseRobotsTxt(content: string): ParsedRobotsTxt {
+  const rules = new Map<string, { userAgent: string; disallow: string[]; allow: string[] }>();
+  const lines = content.split('\n');
+  let currentUserAgent: string | null = null;
+  let hasWildcard = false;
+
+  for (let line of lines) {
+    line = line.trim();
+
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+
+    const colonIndex = line.indexOf(':');
+    if (colonIndex === -1) continue;
+
+    const directive = line.substring(0, colonIndex).trim().toLowerCase();
+    const value = line.substring(colonIndex + 1).trim();
+
+    if (directive === 'user-agent') {
+      currentUserAgent = value.toLowerCase();
+
+      if (currentUserAgent === '*') {
+        hasWildcard = true;
+      }
+
+      if (!rules.has(currentUserAgent)) {
+        rules.set(currentUserAgent, {
+          userAgent: currentUserAgent,
+          disallow: [],
+          allow: []
+        });
+      }
+    } else if (currentUserAgent && (directive === 'disallow' || directive === 'allow')) {
+      const rule = rules.get(currentUserAgent);
+      if (rule) {
+        if (directive === 'disallow' && value) {
+          rule.disallow.push(value);
+        } else if (directive === 'allow' && value) {
+          rule.allow.push(value);
+        }
+      }
+    }
+  }
+
+  return { rules, hasWildcard };
+}
+
+function checkBotAllowedInRobotsTxt(
+  botName: BotName,
+  parsedRobots: ParsedRobotsTxt,
+  requestedPath: string
+): { allowed: boolean; rule: string | null } {
+  const botNameLower = botName.toLowerCase();
+
+  const specificRule = parsedRobots.rules.get(botNameLower);
+
+  if (specificRule) {
+    const allowed = isPathAllowedInRules(requestedPath, specificRule.disallow, specificRule.allow);
+    if (!allowed) {
+      const matchingDisallow = specificRule.disallow.find(pattern =>
+        pathMatchesPattern(requestedPath, pattern)
+      );
+      return {
+        allowed: false,
+        rule: `User-agent: ${botName}\nDisallow: ${matchingDisallow || specificRule.disallow[0]}`
+      };
+    }
+  }
+
+  if (parsedRobots.hasWildcard) {
+    const wildcardRule = parsedRobots.rules.get('*');
+    if (wildcardRule) {
+      const allowed = isPathAllowedInRules(requestedPath, wildcardRule.disallow, wildcardRule.allow);
+      if (!allowed) {
+        const matchingDisallow = wildcardRule.disallow.find(pattern =>
+          pathMatchesPattern(requestedPath, pattern)
+        );
+        return {
+          allowed: false,
+          rule: `User-agent: *\nDisallow: ${matchingDisallow || wildcardRule.disallow[0]}`
+        };
+      }
+    }
+  }
+
+  return { allowed: true, rule: null };
+}
+
+function isPathAllowedInRules(
+  path: string,
+  disallowRules: string[],
+  allowRules: string[]
+): boolean {
+  for (const allowPattern of allowRules) {
+    if (pathMatchesPattern(path, allowPattern)) {
+      return true;
+    }
+  }
+
+  for (const disallowPattern of disallowRules) {
+    if (pathMatchesPattern(path, disallowPattern)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function pathMatchesPattern(path: string, pattern: string): boolean {
+  if (pattern === '/') {
+    return true;
+  }
+
+  if (pattern.endsWith('*')) {
+    const prefix = pattern.slice(0, -1);
+    return path.startsWith(prefix);
+  }
+
+  if (pattern.endsWith('$')) {
+    const exactPath = pattern.slice(0, -1);
+    return path === exactPath;
+  }
+
+  return path.startsWith(pattern);
+}
+
+function calculateBotPenalty(blockedCount: number): number {
+  if (blockedCount === 0) return 0;
+  if (blockedCount === 1) return 5;
+  if (blockedCount === 2) return 10;
+  if (blockedCount === 3) return 15;
+  if (blockedCount === 4) return 20;
+  return 30;
 }
