@@ -12,6 +12,7 @@ import { FixModal } from "./fix-modal";
 import { CompetitiveAnalysis } from "./competitive-analysis";
 import { RoadmapVisualization } from "./roadmap-visualization";
 import { BotAccessCard } from "./bot-access-card";
+import { EntityIdentityCard } from "./entity-identity-card";
 import { PageAnalysis, Scores, PlatformScores, CompetitorData, BotAccessStatus } from "@/lib/types";
 import { generateMockCompetitors, selectPrimaryCompetitor } from "@/lib/mock-competitors";
 import { generateRoadmapPhases, calculateCurrentPhase } from "@/lib/phase-calculator";
@@ -98,7 +99,7 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   };
 
   const handleGenerateFix = async (
-    fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag",
+    fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema",
     impact: string
   ) => {
     setLoadingFix(fixType);
@@ -223,11 +224,32 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
         </div>
       </div>
 
-      <BotAccessCard
-        botAccessData={botAccessData}
-        scorePenalty={calculateBotPenalty(botAccessData.filter(b => !b.isAllowed).length)}
-        loading={loadingBotData}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BotAccessCard
+          botAccessData={botAccessData}
+          scorePenalty={calculateBotPenalty(botAccessData.filter(b => !b.isAllowed).length)}
+          loading={loadingBotData}
+        />
+
+        <EntityIdentityCard
+          entityType={analysis.entityType}
+          entityIdentityScore={analysis.entityIdentityScore}
+          hasOrganizationSchema={analysis.hasOrganizationSchema}
+          hasPersonSchema={analysis.hasPersonSchema}
+          hasSameAsLinks={analysis.hasSameAsLinks}
+          sameAsPlatforms={analysis.sameAsPlatforms}
+          onDefineEntity={() => {
+            if (analysis.entityType === "none") {
+              handleGenerateFix("organization-schema", "+5 points");
+            } else if (!analysis.hasSameAsLinks) {
+              toast({
+                title: "Add Knowledge Graph Links",
+                description: "Edit your schema markup to include sameAs links to Wikipedia, Wikidata, LinkedIn, etc.",
+              });
+            }
+          }}
+        />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>

@@ -33,6 +33,12 @@ interface PageAnalysis {
   argumentDepthScore: number;
   hasViewportTag: boolean;
   hasAuthorSchema: boolean;
+  hasOrganizationSchema: boolean;
+  hasPersonSchema: boolean;
+  hasSameAsLinks: boolean;
+  sameAsPlatforms: string[];
+  entityType: string;
+  entityIdentityScore: number;
 }
 
 interface Scores {
@@ -268,6 +274,12 @@ Deno.serve(async (req: Request) => {
           has_howto_schema: analysis.hasHowtoSchema,
           has_list_structure: analysis.hasListStructure,
           readability_score: analysis.readabilityScore,
+          has_organization_schema: analysis.hasOrganizationSchema,
+          has_person_schema: analysis.hasPersonSchema,
+          has_same_as_links: analysis.hasSameAsLinks,
+          same_as_platforms: analysis.sameAsPlatforms,
+          entity_type: analysis.entityType,
+          entity_identity_score: analysis.entityIdentityScore,
           last_scraped: new Date().toISOString(),
         })
         .eq("id", existingPage.data.id);
@@ -294,6 +306,12 @@ Deno.serve(async (req: Request) => {
           has_howto_schema: analysis.hasHowtoSchema,
           has_list_structure: analysis.hasListStructure,
           readability_score: analysis.readabilityScore,
+          has_organization_schema: analysis.hasOrganizationSchema,
+          has_person_schema: analysis.hasPersonSchema,
+          has_same_as_links: analysis.hasSameAsLinks,
+          same_as_platforms: analysis.sameAsPlatforms,
+          entity_type: analysis.entityType,
+          entity_identity_score: analysis.entityIdentityScore,
           last_scraped: new Date().toISOString(),
         })
         .select("id")
@@ -598,6 +616,56 @@ function analyzeHTML(html: string): PageAnalysis {
 
   const hasViewportTag = html.includes('name="viewport"') || html.includes("name='viewport'");
 
+  const hasOrganizationSchema =
+    html.includes('"@type":"Organization"') ||
+    html.includes('"@type": "Organization"') ||
+    html.includes('"Organization"');
+
+  const hasPersonSchema =
+    (html.includes('"@type":"Person"') ||
+    html.includes('"@type": "Person"')) &&
+    !hasAuthorSchema;
+
+  const sameAsRegex = /"sameAs"\s*:\s*\[([^\]]+)\]|"sameAs"\s*:\s*"([^"]+)"/gi;
+  const sameAsMatches = [...html.matchAll(sameAsRegex)];
+  const hasSameAsLinks = sameAsMatches.length > 0;
+
+  const sameAsPlatforms: string[] = [];
+  if (hasSameAsLinks) {
+    sameAsMatches.forEach(match => {
+      const urls = match[1] || match[2];
+      if (urls) {
+        if (urls.includes('wikipedia.org')) sameAsPlatforms.push('Wikipedia');
+        if (urls.includes('wikidata.org')) sameAsPlatforms.push('Wikidata');
+        if (urls.includes('linkedin.com')) sameAsPlatforms.push('LinkedIn');
+        if (urls.includes('twitter.com') || urls.includes('x.com')) sameAsPlatforms.push('Twitter/X');
+        if (urls.includes('facebook.com')) sameAsPlatforms.push('Facebook');
+        if (urls.includes('instagram.com')) sameAsPlatforms.push('Instagram');
+        if (urls.includes('crunchbase.com')) sameAsPlatforms.push('Crunchbase');
+      }
+    });
+  }
+
+  let entityType = 'none';
+  if (hasOrganizationSchema && hasPersonSchema) {
+    entityType = 'both';
+  } else if (hasOrganizationSchema) {
+    entityType = 'organization';
+  } else if (hasPersonSchema) {
+    entityType = 'person';
+  }
+
+  let entityIdentityScore = 0;
+  if (hasOrganizationSchema) {
+    entityIdentityScore += 5;
+  }
+  if (hasPersonSchema) {
+    entityIdentityScore += 3;
+  }
+  if (hasSameAsLinks) {
+    entityIdentityScore += 7;
+  }
+
   return {
     title,
     metaDescription,
@@ -619,6 +687,12 @@ function analyzeHTML(html: string): PageAnalysis {
     argumentDepthScore,
     hasViewportTag,
     hasAuthorSchema,
+    hasOrganizationSchema,
+    hasPersonSchema,
+    hasSameAsLinks,
+    sameAsPlatforms: [...new Set(sameAsPlatforms)],
+    entityType,
+    entityIdentityScore,
   };
 }
 

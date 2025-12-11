@@ -19,6 +19,12 @@ export interface PageAnalysis {
   argumentDepthScore: number;
   hasViewportTag: boolean;
   hasAuthorSchema: boolean;
+  hasOrganizationSchema: boolean;
+  hasPersonSchema: boolean;
+  hasSameAsLinks: boolean;
+  sameAsPlatforms: string[];
+  entityType: string;
+  entityIdentityScore: number;
 }
 
 export interface Scores {

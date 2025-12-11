@@ -12,12 +12,15 @@ const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/
 
 interface GenerateFixRequest {
   pageId: string;
-  fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag";
+  fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema";
   currentContent: {
     title?: string;
     metaDescription?: string;
     content?: string;
     url?: string;
+    organizationName?: string;
+    personName?: string;
+    description?: string;
   };
 }
 
@@ -202,6 +205,49 @@ The title should:
 
 Return ONLY the title text, no quotes, no explanations.`;
       expectedFormat = "text";
+      break;
+
+    case "organization-schema":
+      prompt = `Generate a valid JSON-LD Organization schema for a website with the following information:
+Organization Name: ${currentContent.organizationName || currentContent.title || "N/A"}
+Website URL: ${currentContent.url || "N/A"}
+Description: ${currentContent.description || currentContent.metaDescription || "N/A"}
+
+Create an Organization schema that includes:
+- @context and @type (Organization)
+- name, url, description
+- IMPORTANT: Include a "sameAs" array with 3-5 relevant URLs to establish Knowledge Graph identity. Use realistic URLs like:
+  * Wikipedia page (if applicable)
+  * Wikidata entry (if applicable)
+  * LinkedIn company page
+  * Twitter/X profile
+  * Facebook page
+  * Crunchbase profile (for businesses)
+
+The sameAs URLs should help AI models verify the organization's identity in Knowledge Graphs.
+Return ONLY the JSON-LD schema, no explanations. Make sure it's valid JSON that can be parsed.`;
+      break;
+
+    case "person-schema":
+      prompt = `Generate a valid JSON-LD Person schema for an author/expert with the following information:
+Person Name: ${currentContent.personName || "N/A"}
+Website URL: ${currentContent.url || "N/A"}
+Description: ${currentContent.description || currentContent.metaDescription || "N/A"}
+
+Create a Person schema that includes:
+- @context and @type (Person)
+- name, url, description
+- jobTitle (relevant to the content)
+- IMPORTANT: Include a "sameAs" array with 3-5 relevant URLs to establish Knowledge Graph identity. Use realistic URLs like:
+  * Wikipedia page (if notable)
+  * Wikidata entry (if applicable)
+  * LinkedIn profile
+  * Twitter/X profile
+  * Professional website
+  * GitHub profile (for developers)
+
+The sameAs URLs should help AI models verify the person's identity and expertise in Knowledge Graphs.
+Return ONLY the JSON-LD schema, no explanations. Make sure it's valid JSON that can be parsed.`;
       break;
 
     default:
