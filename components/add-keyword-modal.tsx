@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/utils/supabase/client";
 
 interface KeywordSuggestion {
   query: string;
@@ -101,13 +102,89 @@ export function AddKeywordModal({ isOpen, onClose, onSuccess }: AddKeywordModalP
     setError("");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("You must be logged in to add keywords");
+      }
+
+      let websiteId: string;
+      const defaultWebsiteUrl = "https://example.com";
+      const defaultDomain = "example.com";
+
+      const { data: existingWebsite, error: websiteCheckError } = await supabase
+        .from("websites")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (websiteCheckError) {
+        throw websiteCheckError;
+      }
+
+      if (existingWebsite) {
+        websiteId = (existingWebsite as { id: string }).id;
+      } else {
+        const { data: newWebsite, error: websiteInsertError } = await supabase
+          .from("websites")
+          .insert({
+            user_id: user.id,
+            url: defaultWebsiteUrl,
+            domain: defaultDomain,
+          } as any)
+          .select("id")
+          .single();
+
+        if (websiteInsertError) {
+          throw websiteInsertError;
+        }
+
+        websiteId = (newWebsite as { id: string }).id;
+      }
+
+      const { data: parentKeyword, error: parentError } = await supabase
+        .from("tracked_keywords")
+        .insert({
+          website_id: websiteId,
+          keyword: mainKeyword.trim(),
+          is_fan_out: false,
+          parent_id: null,
+          intent_category: null,
+          cluster_name: `${mainKeyword} Cluster`,
+        } as any)
+        .select("id")
+        .single();
+
+      if (parentError) {
+        throw parentError;
+      }
+
+      const childKeywords = selectedSuggestions.map((suggestion) => ({
+        website_id: websiteId,
+        keyword: suggestion.query,
+        parent_id: (parentKeyword as { id: string }).id,
+        intent_category: suggestion.type,
+        is_fan_out: true,
+        search_volume: 0,
+      }));
+
+      const { error: childrenError } = await supabase
+        .from("tracked_keywords")
+        .insert(childKeywords as any);
+
+      if (childrenError) {
+        throw childrenError;
+      }
 
       onSuccess();
       handleReset();
     } catch (err) {
       console.error("Error saving keywords:", err);
-      setError("Failed to save keywords. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save keywords. Please try again."
+      );
       setIsSaving(false);
     }
   };

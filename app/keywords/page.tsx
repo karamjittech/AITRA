@@ -6,22 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AddKeywordModal } from "@/components/add-keyword-modal";
-import { Plus, TrendingUp, Search, Trash2 } from "lucide-react";
+import { Plus, TrendingUp, Search, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/utils/supabase/client";
+
+interface ChildKeyword {
+  id: string;
+  keyword: string;
+  intent_category: string | null;
+  search_volume: number;
+}
 
 interface KeywordGroup {
   id: string;
-  name: string;
-  main_keyword: string;
+  keyword: string;
+  cluster_name: string | null;
   created_at: string;
-  keywords: Array<{
-    id: string;
-    keyword: string;
-    is_main_keyword: boolean;
-    is_ai_suggested: boolean;
-    suggestion_type: string;
-    search_volume: number;
-  }>;
+  children: ChildKeyword[];
 }
 
 export default function KeywordsPage() {
@@ -29,6 +30,7 @@ export default function KeywordsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadKeywordGroups();
@@ -37,13 +39,141 @@ export default function KeywordsPage() {
   const loadKeywordGroups = async () => {
     setIsLoading(true);
     setError("");
-    setKeywordGroups([]);
-    setIsLoading(false);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("Please log in to view keywords");
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: website, error: websiteError } = await supabase
+        .from("websites")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (websiteError) {
+        throw websiteError;
+      }
+
+      if (!website) {
+        setKeywordGroups([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const websiteId = (website as { id: string }).id;
+
+      const { data: parentKeywords, error: parentsError } = await supabase
+        .from("tracked_keywords")
+        .select("id, keyword, cluster_name, created_at")
+        .eq("website_id", websiteId)
+        .is("parent_id", null)
+        .order("created_at", { ascending: false });
+
+      if (parentsError) {
+        throw parentsError;
+      }
+
+      const groupsWithChildren: KeywordGroup[] = await Promise.all(
+        (parentKeywords || []).map(async (parent: any) => {
+          const { data: children, error: childrenError } = await supabase
+            .from("tracked_keywords")
+            .select("id, keyword, intent_category, search_volume")
+            .eq("parent_id", parent.id)
+            .order("intent_category", { ascending: true });
+
+          if (childrenError) {
+            console.error("Error loading children:", childrenError);
+          }
+
+          return {
+            id: parent.id,
+            keyword: parent.keyword,
+            cluster_name: parent.cluster_name,
+            created_at: parent.created_at,
+            children: ((children || []) as any[]).map((child: any) => ({
+              id: child.id,
+              keyword: child.keyword,
+              intent_category: child.intent_category,
+              search_volume: child.search_volume,
+            })),
+          };
+        })
+      );
+
+      setKeywordGroups(groupsWithChildren);
+      const allExpanded = new Set(groupsWithChildren.map((g) => g.id));
+      setExpandedGroups(allExpanded);
+    } catch (err) {
+      console.error("Error loading keywords:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load keywords. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeywordGroupAdded = () => {
     setIsModalOpen(false);
     loadKeywordGroups();
+  };
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDeleteGroup = async (groupId: string) => {
+    if (!confirm("Are you sure you want to delete this keyword cluster?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("tracked_keywords")
+        .delete()
+        .eq("id", groupId);
+
+      if (error) {
+        throw error;
+      }
+
+      loadKeywordGroups();
+    } catch (err) {
+      console.error("Error deleting keyword group:", err);
+      setError("Failed to delete keyword group");
+    }
+  };
+
+  const getCategoryColor = (category: string | null) => {
+    switch (category) {
+      case "Informational":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Comparative":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Instructional":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "Brand":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "Evaluative":
+        return "bg-pink-100 text-pink-800 border-pink-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
   };
 
   return (
@@ -102,66 +232,106 @@ export default function KeywordsPage() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {keywordGroups.map((group) => (
-                <Card key={group.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-xl">{group.name}</CardTitle>
-                        <CardDescription>
-                          Main keyword: {group.main_keyword}
-                        </CardDescription>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Keyword</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Search Volume</TableHead>
-                          <TableHead>Source</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {group.keywords.map((keyword) => (
-                          <TableRow key={keyword.id}>
-                            <TableCell className="font-medium">
-                              {keyword.keyword}
-                              {keyword.is_main_keyword && (
-                                <Badge variant="default" className="ml-2">
-                                  Main
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {keyword.suggestion_type || "manual"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {keyword.search_volume > 0
-                                ? keyword.search_volume.toLocaleString()
-                                : "N/A"}
-                            </TableCell>
-                            <TableCell>
-                              {keyword.is_ai_suggested ? (
-                                <Badge variant="secondary">AI Suggested</Badge>
+              {keywordGroups.map((group) => {
+                const isExpanded = expandedGroups.has(group.id);
+                const categoryCounts = group.children.reduce((acc, child) => {
+                  const category = child.intent_category || "Other";
+                  acc[category] = (acc[category] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>);
+
+                return (
+                  <Card key={group.id} className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleGroup(group.id)}
+                              className="h-8 w-8 p-0"
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="h-5 w-5" />
                               ) : (
-                                <Badge variant="outline">Manual</Badge>
+                                <ChevronRight className="h-5 w-5" />
                               )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              ))}
+                            </Button>
+                            <div>
+                              <CardTitle className="text-xl flex items-center gap-2">
+                                {group.cluster_name || group.keyword}
+                                <Badge variant="outline" className="font-normal">
+                                  {group.children.length} queries
+                                </Badge>
+                              </CardTitle>
+                              <CardDescription className="mt-1">
+                                Main keyword: <span className="font-medium text-gray-900">{group.keyword}</span>
+                              </CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-3 ml-11">
+                            {Object.entries(categoryCounts).map(([category, count]) => (
+                              <Badge
+                                key={category}
+                                variant="outline"
+                                className={`${getCategoryColor(category)} text-xs`}
+                              >
+                                {category}: {count}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteGroup(group.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    {isExpanded && (
+                      <CardContent className="pt-6">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Query</TableHead>
+                              <TableHead>Intent Category</TableHead>
+                              <TableHead>Search Volume</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {group.children.map((child) => (
+                              <TableRow key={child.id}>
+                                <TableCell className="font-medium pl-8">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-4 h-0.5 bg-gray-300"></div>
+                                    {child.keyword}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={getCategoryColor(child.intent_category)}
+                                  >
+                                    {child.intent_category || "Other"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {child.search_volume > 0
+                                    ? child.search_volume.toLocaleString()
+                                    : "N/A"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

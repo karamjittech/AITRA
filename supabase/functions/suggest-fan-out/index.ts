@@ -15,7 +15,7 @@ interface SuggestFanOutRequest {
 
 interface KeywordSuggestion {
   query: string;
-  type: 'informational' | 'comparative' | 'evaluative' | 'use-case' | 'problem-solution';
+  type: 'Informational' | 'Comparative' | 'Instructional' | 'Brand' | 'Evaluative';
   relevance: number;
 }
 
@@ -78,54 +78,55 @@ Deno.serve(async (req: Request) => {
 });
 
 async function generateFanOutKeywords(mainKeyword: string): Promise<KeywordSuggestion[]> {
-  const prompt = `Generate 5 related search keyword variations for: "${mainKeyword}"
+  const prompt = `You are an AI SEO Specialist. LLMs generate 'fan-out' queries to answer complex user questions.
 
-Create diverse query types:
+Based on the seed keyword "${mainKeyword}", generate a JSON list of 15-20 relevant sub-queries categorized by these specific intents:
 
-1. Informational query (what/why/how) - Seeks understanding or definitions
-2. Comparative query (vs/best/top) - Compares options or alternatives
-3. Evaluative query (pros/cons/review/worth it) - Assesses quality or value
-4. Use-case query (for/to/when to use) - Explores practical applications
-5. Problem-solution query (fix/solve/prevent) - Addresses specific problems
+1. **Informational** (3-4 queries): "How does X work?", "What is X?", "Why X?"
+   - Seeks understanding, definitions, or explanations
+   - Examples: "What is [keyword]", "How does [keyword] work", "Why use [keyword]"
 
-Requirements:
-- Each query should be 2-6 words
-- Use natural, conversational language
-- Include question words where appropriate (what, how, when, why, which)
-- Ensure queries are distinct and cover different search intents
+2. **Comparative** (3-4 queries): "X vs Y", "Best X for Y", "Difference between X and Y"
+   - Compares options, alternatives, or competitors
+   - Examples: "[keyword] vs [alternative]", "Best [keyword] for [use case]", "[keyword] compared to [competitor]"
 
-Respond with valid JSON only (no markdown, no code blocks):
+3. **Instructional** (3-4 queries): "How to X", "Steps to Y", "Guide to Z"
+   - Step-by-step guidance or tutorials
+   - Examples: "How to use [keyword]", "Steps to set up [keyword]", "[keyword] tutorial"
+
+4. **Brand** (3-4 queries): "X features", "X pricing", "X for Y use case"
+   - Product/service specific queries about features, pricing, or capabilities
+   - Examples: "[keyword] features", "[keyword] pricing", "[keyword] for [industry/use case]"
+
+5. **Evaluative** (3-4 queries): "Is X good?", "Should I use X?", "X suitable for Y?"
+   - Assesses quality, suitability, or value
+   - Examples: "Is [keyword] worth it", "Should I use [keyword]", "[keyword] pros and cons"
+
+REQUIREMENTS:
+- Generate 15-20 total queries (3-4 per category)
+- Each query should be natural and conversational (2-8 words)
+- Queries must be realistic searches users would actually type
+- Include question words where appropriate (what, how, when, why, which, is, should)
+- Ensure queries are distinct and actionable
+- Relevance scores should be 75-100 (higher = more relevant to seed keyword)
+
+Respond with ONLY valid JSON (no markdown, no code blocks, no explanatory text):
 {
   "suggestions": [
     {
-      "query": "query text here",
-      "type": "informational",
+      "query": "what is [keyword]",
+      "type": "Informational",
       "relevance": 95
     },
     {
-      "query": "query text here",
-      "type": "comparative",
-      "relevance": 90
-    },
-    {
-      "query": "query text here",
-      "type": "evaluative",
-      "relevance": 88
-    },
-    {
-      "query": "query text here",
-      "type": "use-case",
-      "relevance": 85
-    },
-    {
-      "query": "query text here",
-      "type": "problem-solution",
-      "relevance": 82
+      "query": "[keyword] vs [alternative]",
+      "type": "Comparative",
+      "relevance": 92
     }
   ]
 }
 
-Relevance scores should be 75-100.`;
+Generate the complete list now.`;
 
   const requestBody = {
     contents: [
@@ -200,7 +201,7 @@ Relevance scores should be 75-100.`;
     }
     return parsed.suggestions.map((s: any) => ({
       query: s.query || "",
-      type: s.type || "informational",
+      type: s.type || "Informational",
       relevance: s.relevance || 80,
     }));
   } catch (e) {
