@@ -41,7 +41,8 @@ AITRA (AI-Targeted Readiness Analyzer) helps content creators, SEO professionals
 
 ### Backend
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
+- **Authentication**: Supabase Auth (Email/Password, Google OAuth, Magic Links)
+- **Session Management**: @supabase/ssr
 - **Serverless Functions**: Supabase Edge Functions (Deno runtime)
 - **API Client**: Supabase JavaScript Client
 
@@ -113,7 +114,42 @@ The database schema is already created via migrations. The schema includes:
 
 All tables have Row Level Security (RLS) enabled with proper policies.
 
-### 5. Deploy Edge Functions
+### 5. Authentication & Subscription System
+
+The platform includes a complete authentication and tiered subscription system:
+
+**Subscription Tiers:**
+- **Free**: 1 website, 3 keywords, 50 AI credits/month
+- **Pro** ($39/month): 3 websites, 50 keywords, 500 AI credits/month
+- **Agency** ($119/month): 15 websites, 250 keywords, 2,500 AI credits/month
+
+**Authentication Methods:**
+- Email/Password authentication
+- Google OAuth integration
+- Magic Link (passwordless authentication)
+- Protected routes with middleware
+
+**Credit System:**
+Credits power AI-intensive features with different costs:
+- Sentiment Analysis: 5 credits
+- Schema Generation: 2 credits
+- Fan-Out Analysis: 10 credits
+- E-E-A-T Analysis: 15 credits
+- Share of Voice: 20 credits
+
+**Feature Gating:**
+The system automatically restricts features based on subscription tier and available credits. Premium features show upgrade prompts when accessed by Free users.
+
+**User Profile Fields:**
+- `subscription_plan`: free, pro, or agency
+- `credits_total`: Monthly credit allocation
+- `credits_used`: Credits consumed this cycle
+- `websites_limit`: Max websites allowed
+- `keywords_limit`: Max keywords allowed
+- `billing_cycle_start`: Subscription renewal date
+- Stripe integration fields for payment processing
+
+### 6. Deploy Edge Functions
 
 The project includes several Supabase Edge Functions:
 
@@ -134,7 +170,13 @@ project/
 │   ├── layout.tsx               # Root layout
 │   ├── page.tsx                 # Home page
 │   ├── analytics/               # Analytics dashboard
+│   ├── authority/               # Authority page
+│   ├── reputation/              # Reputation page
 │   ├── keywords/                # Keyword management
+│   ├── login/                   # Login page
+│   ├── signup/                  # Signup page
+│   ├── pricing/                 # Pricing page
+│   ├── auth/callback/           # OAuth callback handler
 │   └── globals.css              # Global styles
 ├── components/                   # React components
 │   ├── ui/                      # shadcn/ui components
@@ -146,6 +188,11 @@ project/
 │   ├── platform-cards-section.tsx # Platform scores
 │   ├── results-display.tsx      # Analysis results
 │   ├── roadmap-visualization.tsx # Improvement roadmap
+│   ├── table-conversion-modal.tsx # Perplexity table converter
+│   ├── upgrade-gate.tsx         # Premium feature lock
+│   ├── credit-gate.tsx          # Credit requirement gate
+│   ├── limit-reached.tsx        # Limit notification
+│   ├── pricing-modal.tsx        # Upgrade modal
 │   └── url-input.tsx            # URL submission form
 ├── lib/                         # Utility libraries
 │   ├── types.ts                 # TypeScript type definitions
@@ -161,6 +208,11 @@ project/
 │   ├── migrations/              # Database migrations
 │   └── functions/               # Edge functions
 ├── hooks/                       # Custom React hooks
+│   ├── use-subscription.ts      # Subscription management
+│   ├── use-limit-check.ts       # Feature limit checking
+│   ├── use-credit-deduction.ts  # Credit usage tracking
+│   └── use-toast.ts             # Toast notifications
+├── middleware.ts                # Route protection
 ├── package.json                 # Dependencies
 ├── next.config.js               # Next.js configuration
 ├── tailwind.config.ts           # Tailwind configuration
@@ -603,7 +655,10 @@ Research sources:
 
 ---
 
-**Version**: 1.1.0
+**Version**: 1.2.0
 **Last Updated**: December 12, 2024
 
-**Latest Feature**: Perplexity Table Conversion Optimizer - Auto-detect and convert comparative content to structured tables with 3.2x citation improvement
+**Latest Features**:
+- Authentication & Tiered Subscription System (Free/Pro/Agency)
+- Credit-based AI feature usage with automatic tracking
+- Perplexity Table Conversion Optimizer - Auto-detect and convert comparative content to structured tables with 3.2x citation improvement

@@ -1,8 +1,8 @@
 # PROJECT CONTEXT: AITRA (AI-Targeted Readiness Analyzer)
 
 **Last Updated:** December 12, 2024
-**Version:** 1.1.0
-**Status:** MVP Operational with Perplexity Table Optimizer
+**Version:** 1.2.0
+**Status:** MVP Operational with Authentication, Subscriptions & Perplexity Table Optimizer
 
 ---
 
@@ -233,6 +233,47 @@ AI search engines (ChatGPT, Claude, Gemini, Perplexity) are changing how people 
   - Structured data improves AI parsing and citation accuracy
 - **Impact:** +8-12 points to Perplexity platform score per conversion
 
+#### 13. Authentication & Subscription System
+- **Status:** Fully operational
+- **Location:** Multiple files
+- **Authentication Methods:**
+  - Email/Password authentication
+  - Google OAuth integration
+  - Magic Link (passwordless)
+- **Subscription Tiers:**
+  - Free (1 website, 3 keywords, 50 credits/month)
+  - Pro (3 websites, 50 keywords, 500 credits/month, $39/mo)
+  - Agency (15 websites, 250 keywords, 2,500 credits/month, $119/mo)
+- **Credit System:**
+  - Credit-based AI feature usage
+  - Per-action costs (sentiment: 5, schema: 2, fan-out: 10, eeat: 15, sov: 20)
+  - Automatic deduction with rollback on failure
+  - Monthly reset on billing cycle
+  - Usage tracking in credits_usage table
+- **Feature Gating:**
+  - UpgradeGate for premium features
+  - CreditGate for credit requirements
+  - LimitReached alerts for caps
+  - Tier-specific access control
+- **Components:**
+  - `app/login/page.tsx` - Login interface
+  - `app/signup/page.tsx` - Registration interface
+  - `app/auth/callback/route.ts` - OAuth callback
+  - `app/pricing/page.tsx` - Pricing tiers
+  - `middleware.ts` - Route protection
+  - `hooks/use-subscription.ts` - Subscription state
+  - `hooks/use-limit-check.ts` - Limit validation
+  - `hooks/use-credit-deduction.ts` - Credit management
+  - `components/upgrade-gate.tsx` - Premium feature lock
+  - `components/credit-gate.tsx` - Credit requirement gate
+  - `components/pricing-modal.tsx` - Upgrade prompt
+  - `components/nav-bar.tsx` - Updated with user menu and usage tracker
+- **Database:**
+  - Extended users table with 9 new fields
+  - New table: credits_usage for consumption tracking
+  - Helper functions: get_credits_remaining, deduct_credits
+  - RLS policies for all credit operations
+
 ### 🚧 In Progress
 
 1. **Google Search Console Integration**
@@ -257,17 +298,12 @@ AI search engines (ChatGPT, Claude, Gemini, Perplexity) are changing how people 
    - Citation position tracking
    - Competitor monitoring
 
-2. **User Authentication**
-   - Supabase Auth integration
-   - User dashboards
-   - Multi-site management
-
-3. **Citation Timeline Tracking**
+2. **Citation Timeline Tracking**
    - Historical citation data
    - Trend analysis
    - Alerts for lost citations
 
-4. **Advanced Competitive Analysis**
+3. **Advanced Competitive Analysis**
    - Real competitor data (not mocks)
    - Multi-competitor comparison
    - Industry benchmarking
@@ -309,7 +345,13 @@ project/
 │   ├── layout.tsx                    # Root layout with nav
 │   ├── page.tsx                      # Home page (main analysis)
 │   ├── analytics/page.tsx            # Analytics dashboard
+│   ├── authority/page.tsx            # Authority page
+│   ├── reputation/page.tsx           # Reputation page
 │   ├── keywords/page.tsx             # Keyword management
+│   ├── login/page.tsx                # Login page
+│   ├── signup/page.tsx               # Signup page
+│   ├── pricing/page.tsx              # Pricing page
+│   ├── auth/callback/route.ts        # OAuth callback handler
 │   └── globals.css                   # Global styles
 │
 ├── components/                       # React components
@@ -336,6 +378,10 @@ project/
 │   ├── fix-modal.tsx                 # Fix generation modal
 │   ├── add-keyword-modal.tsx         # Keyword addition modal
 │   ├── table-conversion-modal.tsx    # Table suggestion modal
+│   ├── upgrade-gate.tsx              # Premium feature lock
+│   ├── credit-gate.tsx               # Credit requirement gate
+│   ├── limit-reached.tsx             # Limit notification
+│   ├── pricing-modal.tsx             # Upgrade modal
 │   └── nav-bar.tsx                   # Navigation component
 │
 ├── lib/                              # Utility libraries
@@ -372,7 +418,11 @@ project/
 │       └── suggest-fan-out/index.ts  # Content expansion suggestions
 │
 ├── hooks/                            # Custom React hooks
+│   ├── use-subscription.ts           # Subscription management
+│   ├── use-limit-check.ts            # Feature limit checking
+│   ├── use-credit-deduction.ts       # Credit usage tracking
 │   └── use-toast.ts                  # Toast notification hook
+├── middleware.ts                     # Route protection
 │
 ├── package.json                      # Dependencies
 ├── next.config.js                    # Next.js configuration
@@ -455,9 +505,20 @@ created_at TIMESTAMPTZ DEFAULT NOW()
 gsc_connected BOOLEAN DEFAULT FALSE
 gsc_property_url TEXT
 subscription_plan VARCHAR(20) DEFAULT 'free'
+credits_total INT DEFAULT 50
+credits_used INT DEFAULT 0
+websites_limit INT DEFAULT 1
+keywords_limit INT DEFAULT 3
+stripe_customer_id TEXT
+stripe_subscription_id TEXT
+subscription_status VARCHAR(20)
+billing_cycle_start TIMESTAMPTZ
+billing_cycle_end TIMESTAMPTZ
 ```
-**Purpose:** User accounts with GSC integration status
+**Purpose:** User accounts with subscription, credit allocation, and billing information
 **RLS:** Users can only view/update their own record
+**Subscription Plans:** free (default), pro, agency
+**Credit Allocation:** Free=50, Pro=500, Agency=2500 credits per month
 
 #### 2. websites
 ```sql
@@ -731,6 +792,20 @@ UNIQUE(page_id)
 **Purpose:** Track optimization progress
 **RLS:** Users can only access roadmaps for their pages
 
+#### 16. credits_usage
+```sql
+id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+user_id UUID REFERENCES users(id) ON DELETE CASCADE
+action_type TEXT NOT NULL
+credits_consumed INT NOT NULL
+created_at TIMESTAMPTZ DEFAULT NOW()
+metadata JSONB DEFAULT '{}'::JSONB
+```
+**Purpose:** Historical log of credit consumption and feature usage
+**Action Types:** sentiment, fan_out, sov, schema, eeat, citation_context
+**Metadata:** Stores additional context (page_id, feature details, etc.)
+**RLS:** Users can view own usage history, system can insert consumption records
+
 ### Indexes for Performance
 
 ```sql
@@ -994,6 +1069,139 @@ Max Penalty = 10 points (all 5 bots blocked)
 **Applied To:**
 - Overall AI Readiness Score
 - Relevant platform scores (e.g., GPTBot blocked = ChatGPT score penalty)
+
+---
+
+## SUBSCRIPTION & CREDIT SYSTEM
+
+### Tier Structure
+
+**Free Tier (Default)**
+- 1 website tracked
+- 3 keywords monitored
+- 50 AI credits per month
+- Basic visibility checks
+- Platform-specific scoring
+- Bot access verification
+- Entity identity tracking
+- AEO score analysis
+- Perplexity table optimizer
+- No sentiment analysis
+- No share of voice
+- No fan-out analysis
+- No E-E-A-T analysis
+
+**Pro Tier ($39/month)**
+- 3 websites tracked
+- 50 keywords monitored
+- 500 AI credits per month
+- All Free features, plus:
+- Sentiment analysis (5 credits)
+- Schema generator (2 credits)
+- Fan-out analysis (10 credits)
+- Citation context analysis
+- Competitive gap analysis
+
+**Agency Tier ($119/month)**
+- 15 websites tracked
+- 250 keywords monitored
+- 2,500 AI credits per month
+- All Pro features, plus:
+- E-E-A-T analysis (15 credits)
+- Share of Voice tracking (20 credits)
+- Competitor spy features
+- White label reports (planned)
+- Priority support
+- Bulk operations (planned)
+
+### Credit Costs
+
+| Feature | Credits | Tier Required |
+|---------|---------|---------------|
+| Sentiment Analysis | 5 | Pro+ |
+| Schema Generation | 2 | Pro+ |
+| Fan-Out Analysis | 10 | Pro+ |
+| E-E-A-T Analysis | 15 | Agency |
+| Share of Voice | 20 | Agency |
+| Citation Context | 3 | Pro+ |
+
+### Credit Management
+
+**Reset Cycle:** Monthly on billing anniversary date
+**Unused Credits:** Do not roll over to next month
+**Overage:** Features automatically disabled when credits exhausted
+**Refill:** Automatic on monthly reset or immediate on plan upgrade
+**Tracking:** All consumption logged in credits_usage table
+
+### Feature Gating Logic
+
+**Website Limit Check:**
+```typescript
+const canAddWebsite = user.websites_count < user.websites_limit;
+if (!canAddWebsite) {
+  show UpgradePrompt("You've reached your website limit. Upgrade to track more sites.");
+}
+```
+
+**Credit Check:**
+```typescript
+const creditCost = getCreditCost(action);
+const hasEnoughCredits = user.credits_remaining >= creditCost;
+if (!hasEnoughCredits) {
+  show CreditGate("Insufficient credits. You need {creditCost} credits for this action.");
+}
+```
+
+**Tier Check:**
+```typescript
+const requiredTier = getRequiredTier(feature);
+const hasAccess = user.tier_level >= requiredTier;
+if (!hasAccess) {
+  show UpgradeGate("This feature requires {requiredTier} plan.");
+}
+```
+
+### Database Helper Functions
+
+**get_credits_remaining(user_id):**
+- Returns: credits_total - credits_used
+- Used by frontend to show remaining balance
+- Calculated in real-time from users table
+
+**deduct_credits(user_id, amount, action_type):**
+- Atomically increments credits_used
+- Logs transaction in credits_usage table
+- Returns success/failure boolean
+- Includes rollback on error
+
+**reset_monthly_credits():**
+- Scheduled job (planned)
+- Runs on billing_cycle_start for each user
+- Sets credits_used = 0
+- Updates billing_cycle dates
+
+### Authentication Flow
+
+**Signup:**
+1. User submits email/password or OAuth
+2. Supabase Auth creates auth.users record
+3. Database trigger creates profile in public.users
+4. Default values: free plan, 50 credits, 1 website, 3 keywords
+5. User redirected to dashboard
+
+**Login:**
+1. User authenticates via Supabase Auth
+2. Session established with cookie
+3. Middleware validates session on protected routes
+4. User data fetched via useSubscription hook
+5. Feature gates applied based on tier/credits
+
+**Feature Access:**
+1. User attempts premium action
+2. useLimitCheck validates tier + credits
+3. If allowed: Action proceeds
+4. If blocked: UpgradeGate or CreditGate shown
+5. User can upgrade via PricingModal
 
 ---
 
@@ -1682,6 +1890,119 @@ Max: 30 points
 
 ## RECENT CHANGES
 
+### December 12, 2024 - Authentication & Tiered Subscription System
+
+**Feature:** Complete authentication and subscription management system
+
+**What Was Built:**
+
+1. **Authentication System**
+   - Email/password login and signup pages
+   - Google OAuth integration
+   - Magic link passwordless authentication support
+   - Session management with @supabase/ssr
+   - Auth callback handler for OAuth redirects
+   - Middleware protecting all routes except public pages
+
+2. **Subscription Tiers**
+   - Free tier (1 website, 3 keywords, 50 credits/month)
+   - Pro tier (3 websites, 50 keywords, 500 credits/month, $39/mo)
+   - Agency tier (15 websites, 250 keywords, 2,500 credits/month, $119/mo)
+   - Database schema for tier limits and credit tracking
+   - Automatic profile creation on signup with default Free tier
+
+3. **Credit System**
+   - Credit-based AI feature usage
+   - Per-action credit costs (sentiment: 5, schema: 2, fan-out: 10, eeat: 15, sov: 20, citation: 3)
+   - Automatic deduction with rollback on failure
+   - Usage tracking in credits_usage table with metadata
+   - Monthly reset on billing cycle (planned scheduled job)
+   - Pre-flight checks before credit consumption
+
+4. **Feature Gating Components**
+   - UpgradeGate component for premium tier-locked features
+   - CreditGate component for credit requirement validation
+   - LimitReached alerts for website/keyword caps
+   - Tier-specific access control throughout app
+   - Inline upgrade prompts with pricing details
+
+5. **User Interface Updates**
+   - Completely redesigned NavBar with user dropdown menu
+   - Real-time usage tracker (credits, websites, keywords)
+   - Tier badge display (Free/Pro/Agency pills)
+   - Comprehensive pricing comparison page
+   - PricingModal for in-app upgrade prompts
+   - Login and signup pages with form validation
+   - Account menu with logout functionality
+
+6. **Custom React Hooks**
+   - useSubscription: Centralized subscription state management
+   - useLimitCheck: Validates actions before execution
+   - useCreditDeduction: Handles credit consumption with error handling
+   - Real-time data fetching from Supabase
+   - Automatic profile creation fallback
+
+7. **Middleware & Route Protection**
+   - Next.js middleware for authentication checks
+   - Protects all routes except /, /login, /signup, /pricing
+   - Automatic redirects to login for unauthenticated users
+   - Session refresh on protected routes
+
+**Database Changes:**
+- Extended users table with 9 new fields:
+  - credits_total, credits_used
+  - websites_limit, keywords_limit
+  - stripe_customer_id, stripe_subscription_id
+  - subscription_status, billing_cycle_start, billing_cycle_end
+- New table: credits_usage for consumption tracking
+  - Tracks action_type, credits_consumed, timestamp, metadata
+- Database helper functions:
+  - get_credits_remaining(user_id): Returns available credits
+  - deduct_credits(user_id, amount, action): Atomic credit deduction
+- RLS policies for all credit operations
+
+**Files Created:**
+- `app/login/page.tsx` - Login interface with email/password
+- `app/signup/page.tsx` - Registration interface
+- `app/auth/callback/route.ts` - OAuth callback handler
+- `app/pricing/page.tsx` - Pricing tiers comparison
+- `hooks/use-subscription.ts` - Subscription state hook
+- `hooks/use-limit-check.ts` - Limit validation hook
+- `hooks/use-credit-deduction.ts` - Credit management hook
+- `components/upgrade-gate.tsx` - Premium feature lock component
+- `components/credit-gate.tsx` - Credit requirement gate component
+- `components/limit-reached.tsx` - Limit notification component
+- `components/pricing-modal.tsx` - In-app upgrade modal
+- `middleware.ts` - Route protection middleware
+
+**Files Modified:**
+- `components/nav-bar.tsx` - Added user menu, usage tracker, tier badge
+- `utils/supabase/server.ts` - Updated for SSR with cookies
+- `next.config.js` - Removed static export for dynamic routes
+- `app/layout.tsx` - Updated to support authentication state
+
+**Migration Files:**
+- `20251212113341_add_tier_limits_and_credits.sql` - All subscription infrastructure
+
+**User Experience:**
+1. New user signs up → Profile created with Free tier (50 credits)
+2. User analyzes pages → Credits deducted automatically
+3. User hits credit limit → CreditGate shown with upgrade option
+4. User hits website limit → UpgradePrompt shown
+5. User clicks "Upgrade" → PricingModal opens with tier comparison
+6. NavBar shows real-time usage: "35/50 credits • 1/1 sites"
+7. Tier badge displayed: "FREE" / "PRO" / "AGENCY"
+
+**Impact:**
+- Monetization foundation complete
+- User segmentation by tier
+- Usage tracking for analytics
+- Feature differentiation clear
+- Upgrade path established
+- Ready for Stripe integration
+
+---
+
 ### December 12, 2024 - Perplexity Table Conversion Optimizer
 
 **Feature:** Complete table conversion system for Perplexity optimization
@@ -1835,6 +2156,13 @@ Max: 30 points
     - Comparative paragraph detection
     - Table recommendation
     - Data density scoring
+
+12. **20251212113341_add_tier_limits_and_credits.sql**
+    - Extended users table with 9 subscription fields
+    - New table: credits_usage
+    - Helper functions: get_credits_remaining, deduct_credits
+    - RLS policies for credit operations
+    - Subscription tier infrastructure
 
 ### November-December 2024 - Initial Development
 
@@ -2095,7 +2423,7 @@ Max: 30 points
 ## CONTACT & SUPPORT
 
 **Project Status:** Active Development
-**Version:** 1.1.0 (MVP + Perplexity Table Optimizer)
+**Version:** 1.2.0 (MVP + Authentication + Subscriptions + Perplexity Table Optimizer)
 **Last Updated:** December 12, 2024
 
 **For Questions:**
