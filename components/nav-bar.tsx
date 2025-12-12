@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Search, TrendingUp, Home, Shield } from "lucide-react";
+import { BarChart3, Search, TrendingUp, Home, Shield, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function NavBar() {
@@ -13,6 +13,7 @@ export function NavBar() {
     { href: "/keywords", label: "Keywords", icon: Search },
     { href: "/analytics", label: "Analytics", icon: TrendingUp },
     { href: "/reputation", label: "Reputation", icon: Shield },
+    { href: "/authority", label: "Authority", icon: Award },
   ];
 
   return (

@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, User, Network, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Building2, User, Network, CheckCircle2, XCircle, AlertCircle, Award } from "lucide-react";
 
 interface EntityIdentityCardProps {
   entityType: string;
@@ -161,24 +162,26 @@ export function EntityIdentityCard({
                 </p>
               </div>
 
-              {entityType === "none" && onDefineEntity && (
-                <Button onClick={onDefineEntity} className="w-full" size="sm">
-                  <Network className="h-4 w-4 mr-2" />
-                  Define Brand Entity
+              <Link href="/authority">
+                <Button className="w-full" size="sm">
+                  {entityType === "none" ? (
+                    <>
+                      <Network className="h-4 w-4 mr-2" />
+                      Define Brand Entity
+                    </>
+                  ) : (
+                    <>
+                      <Award className="h-4 w-4 mr-2" />
+                      Manage Brand Identity
+                    </>
+                  )}
                 </Button>
-              )}
+              </Link>
 
               {entityType !== "none" && !hasSameAsLinks && (
-                <div className="space-y-2">
-                  <p className="text-xs text-blue-700">
-                    <strong>Next Step:</strong> Add sameAs links to connect your entity to Knowledge Graphs
-                  </p>
-                  {onDefineEntity && (
-                    <Button onClick={onDefineEntity} variant="outline" className="w-full" size="sm">
-                      Add Knowledge Graph Links
-                    </Button>
-                  )}
-                </div>
+                <p className="text-xs text-blue-700 mt-2">
+                  <strong>Next Step:</strong> Add sameAs links to connect your entity to Knowledge Graphs
+                </p>
               )}
             </div>
           </div>

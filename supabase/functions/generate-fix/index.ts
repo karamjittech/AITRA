@@ -12,7 +12,7 @@ const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/
 
 interface GenerateFixRequest {
   pageId: string;
-  fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema" | "create-tldr" | "paragraph-to-table";
+  fixType: "faq-schema" | "howto-schema" | "article-schema" | "meta-description" | "title-tag" | "organization-schema" | "person-schema" | "create-tldr" | "paragraph-to-table" | "organization-schema-eeat" | "local-business-schema" | "person-schema-eeat";
   currentContent: {
     title?: string;
     metaDescription?: string;
@@ -23,6 +23,28 @@ interface GenerateFixRequest {
     description?: string;
     paragraphText?: string;
     dataType?: string;
+  };
+  brandIdentity?: {
+    organization_name?: string;
+    organization_type?: string;
+    logo_url?: string;
+    description?: string;
+    website_url?: string;
+    same_as_links?: string[];
+    knows_about?: string[];
+    physical_address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+      postalCode?: string;
+    };
+    contact_info?: {
+      email?: string;
+      phone?: string;
+      contactPageUrl?: string;
+    };
+    founding_date?: string;
   };
 }
 
@@ -51,7 +73,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { pageId, fixType, currentContent }: GenerateFixRequest = await req.json();
+    const { pageId, fixType, currentContent, brandIdentity }: GenerateFixRequest = await req.json();
 
     if (!pageId || !fixType) {
       return new Response(
@@ -92,7 +114,7 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log("Generating new fix with Gemini...");
-    const generatedContent = await generateFixWithGemini(fixType, currentContent);
+    const generatedContent = await generateFixWithGemini(fixType, currentContent, brandIdentity);
 
     const newFix = await supabase
       .from("fixes_generated")
@@ -139,7 +161,8 @@ Deno.serve(async (req: Request) => {
 
 async function generateFixWithGemini(
   fixType: string,
-  currentContent: GenerateFixRequest["currentContent"]
+  currentContent: GenerateFixRequest["currentContent"],
+  brandIdentity?: GenerateFixRequest["brandIdentity"]
 ): Promise<any> {
   let prompt = "";
   let expectedFormat = "json";
@@ -303,6 +326,113 @@ Format the table to maximize AI citation probability. Perplexity displays 8-12 s
 
 Return ONLY the HTML table code with inline styles for better rendering, no explanations before or after.`;
       expectedFormat = "html";
+      break;
+
+    case "organization-schema-eeat":
+      if (!brandIdentity) {
+        throw new Error("Brand identity required for organization-schema-eeat");
+      }
+      prompt = `Generate a comprehensive JSON-LD Organization schema optimized for AI models and E-E-A-T signals with the following brand information:
+
+Organization Name: ${brandIdentity.organization_name}
+Type: ${brandIdentity.organization_type || "Organization"}
+Website: ${brandIdentity.website_url}
+Logo: ${brandIdentity.logo_url || ""}
+Description: ${brandIdentity.description || ""}
+${brandIdentity.founding_date ? `Founded: ${brandIdentity.founding_date}` : ""}
+
+Authority Links (sameAs): ${brandIdentity.same_as_links?.join(", ") || "None provided"}
+Expertise Topics (knowsAbout): ${brandIdentity.knows_about?.join(", ") || "None provided"}
+
+${brandIdentity.physical_address ? `Address:
+Street: ${brandIdentity.physical_address.street || ""}
+City: ${brandIdentity.physical_address.city || ""}
+State: ${brandIdentity.physical_address.state || ""}
+Country: ${brandIdentity.physical_address.country || ""}
+Postal Code: ${brandIdentity.physical_address.postalCode || ""}` : ""}
+
+${brandIdentity.contact_info ? `Contact:
+Email: ${brandIdentity.contact_info.email || ""}
+Phone: ${brandIdentity.contact_info.phone || ""}
+Contact Page: ${brandIdentity.contact_info.contactPageUrl || ""}` : ""}
+
+Create a complete Organization schema that:
+- Includes ALL provided sameAs links (these are CRITICAL for AI trust and Knowledge Graph identity)
+- Includes ALL knowsAbout topics (shows expertise to AI models)
+- Properly formats the address as PostalAddress if provided
+- Includes contactPoint with all contact methods
+- Uses proper Schema.org types and structure
+- Is optimized for maximum AI visibility and E-E-A-T scoring
+
+IMPORTANT: The sameAs array is critical - research shows it increases AI citations by 45%. Include every provided link.
+
+Return ONLY valid JSON-LD schema, no explanations.`;
+      break;
+
+    case "local-business-schema":
+      if (!brandIdentity) {
+        throw new Error("Brand identity required for local-business-schema");
+      }
+      prompt = `Generate a comprehensive JSON-LD LocalBusiness schema optimized for AI models and local search with the following information:
+
+Business Name: ${brandIdentity.organization_name}
+Website: ${brandIdentity.website_url}
+Logo: ${brandIdentity.logo_url || ""}
+Description: ${brandIdentity.description || ""}
+
+${brandIdentity.physical_address ? `Address (REQUIRED for LocalBusiness):
+Street: ${brandIdentity.physical_address.street}
+City: ${brandIdentity.physical_address.city}
+State: ${brandIdentity.physical_address.state}
+Country: ${brandIdentity.physical_address.country}
+Postal Code: ${brandIdentity.physical_address.postalCode}` : "MISSING ADDRESS - Use placeholder"}
+
+${brandIdentity.contact_info ? `Contact Information:
+Phone: ${brandIdentity.contact_info.phone || ""}
+Email: ${brandIdentity.contact_info.email || ""}` : ""}
+
+Authority Links: ${brandIdentity.same_as_links?.join(", ") || "None"}
+Expertise: ${brandIdentity.knows_about?.join(", ") || "None"}
+
+Create a LocalBusiness schema that:
+- Uses @type: "LocalBusiness" (or more specific like "Store", "Restaurant", etc. if appropriate)
+- Includes complete address as PostalAddress
+- Includes geo coordinates (latitude/longitude - estimate based on address)
+- Includes telephone, email
+- Includes sameAs links for Knowledge Graph identity
+- Includes openingHoursSpecification (use typical business hours Mo-Fr 9:00-17:00)
+- Includes priceRange (use $$ as default)
+- Is optimized for local AI search and Google Business Profile
+
+Return ONLY valid JSON-LD schema, no explanations.`;
+      break;
+
+    case "person-schema-eeat":
+      if (!brandIdentity) {
+        throw new Error("Brand identity required for person-schema-eeat");
+      }
+      prompt = `Generate a comprehensive JSON-LD Person schema for an author/expert optimized for AI credibility:
+
+Person Name: ${currentContent.personName || brandIdentity.organization_name}
+Website: ${brandIdentity.website_url || currentContent.url}
+Description/Bio: ${currentContent.description || brandIdentity.description || ""}
+
+Authority Links (sameAs): ${brandIdentity.same_as_links?.join(", ") || "None provided"}
+Expertise Areas (knowsAbout): ${brandIdentity.knows_about?.join(", ") || "None provided"}
+
+${brandIdentity.contact_info?.email ? `Email: ${brandIdentity.contact_info.email}` : ""}
+
+Create a Person schema that:
+- Includes complete professional identity
+- Includes ALL sameAs links (LinkedIn, Twitter, professional profiles, Wikipedia if notable)
+- Includes knowsAbout properties showing expertise
+- Includes jobTitle (infer from expertise or use "Expert" / "Author" / "Consultant")
+- Includes worksFor if it's representing someone at an organization
+- Is optimized for author authority and E-E-A-T signals
+
+IMPORTANT: sameAs links are critical for establishing author credibility to AI models.
+
+Return ONLY valid JSON-LD schema, no explanations.`;
       break;
 
     default:
