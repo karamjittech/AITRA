@@ -19,17 +19,43 @@ interface ShareOfVoiceRequest {
 
 interface CompetitorStats {
   name: string;
+  domain: string;
   citations: number;
   percentage: number;
+  platforms: string[];
+  coCitationFrequency: number;
+  trend?: 'rising' | 'falling' | 'stable';
+  lastSeen?: string;
+}
+
+interface PlatformBreakdown {
+  platform: string;
+  yourCitations: number;
+  yourPercentage: number;
+  totalCitations: number;
+  competitors: Array<{
+    name: string;
+    citations: number;
+    percentage: number;
+  }>;
 }
 
 interface ShareOfVoiceResponse {
   yourBrand: {
     name: string;
+    domain: string;
     citations: number;
     percentage: number;
+    platforms: string[];
   };
   competitors: CompetitorStats[];
+  platformBreakdown: PlatformBreakdown[];
+  insights: {
+    topCompetitor?: string;
+    marketConcentration: number;
+    averageCitationsPerTest: number;
+    totalUniqueDomains: number;
+  };
   totalTests: number;
   dateRange: {
     start: string;
@@ -137,64 +163,163 @@ Deno.serve(async (req: Request) => {
     const startDate = dateRange?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const endDate = dateRange?.end || new Date().toISOString();
 
-    console.log(`Fetching snapshots for ${targetKeywordIds.length} keywords from ${startDate} to ${endDate}`);
+    console.log(`Fetching citations for ${targetKeywordIds.length} keywords from ${startDate} to ${endDate}`);
 
-    let snapshotsQuery = supabase
-      .from("serp_snapshots")
-      .select("*")
+    const { data: citations, error: citationsError } = await supabase
+      .from("citations")
+      .select(`
+        id,
+        keyword_id,
+        platform,
+        cited_domain,
+        is_user_domain,
+        citation_strength,
+        position,
+        created_at
+      `)
       .in("keyword_id", targetKeywordIds)
-      .gte("snapshot_date", startDate)
-      .lte("snapshot_date", endDate);
+      .gte("created_at", startDate)
+      .lte("created_at", endDate);
 
-    const { data: snapshots, error: snapshotsError } = await snapshotsQuery;
-
-    if (snapshotsError) {
-      throw new Error(`Failed to fetch snapshots: ${snapshotsError.message}`);
+    if (citationsError) {
+      throw new Error(`Failed to fetch citations: ${citationsError.message}`);
     }
 
-    console.log(`Found ${snapshots?.length || 0} snapshots`);
+    console.log(`Found ${citations?.length || 0} citations`);
+
+    const normalizeDomain = (domain: string): string => {
+      if (!domain) return '';
+      return domain.toLowerCase().replace(/^www\./i, '').trim();
+    };
+
+    const normalizedYourDomain = normalizeDomain(yourDomain);
 
     let yourCitations = 0;
-    const competitorCounts: Map<string, number> = new Map();
-    let totalTests = 0;
+    const yourPlatforms = new Set<string>();
+    const competitorData = new Map<string, {
+      citations: number;
+      platforms: Set<string>;
+      coCitations: number;
+      lastSeen: string;
+    }>();
 
-    for (const snapshot of snapshots || []) {
-      if (!snapshot.has_ai_overview) continue;
+    const platformData = new Map<string, {
+      yourCitations: number;
+      competitorCitations: Map<string, number>;
+      totalCitations: number;
+    }>();
 
-      totalTests++;
+    const uniqueDomainsSet = new Set<string>();
 
-      if (snapshot.your_site_cited) {
-        yourCitations++;
+    for (const citation of citations || []) {
+      const platform = citation.platform || 'unknown';
+      const domain = normalizeDomain(citation.cited_domain || '');
+
+      if (!domain) continue;
+      uniqueDomainsSet.add(domain);
+
+      if (!platformData.has(platform)) {
+        platformData.set(platform, {
+          yourCitations: 0,
+          competitorCitations: new Map(),
+          totalCitations: 0,
+        });
       }
 
-      if (snapshot.cited_domains && Array.isArray(snapshot.cited_domains)) {
-        for (const domain of snapshot.cited_domains) {
-          if (domain && domain !== yourDomain) {
-            const count = competitorCounts.get(domain) || 0;
-            competitorCounts.set(domain, count + 1);
-          }
-        }
+      const platformStats = platformData.get(platform)!;
+      platformStats.totalCitations++;
+
+      if (citation.is_user_domain || domain === normalizedYourDomain) {
+        yourCitations++;
+        yourPlatforms.add(platform);
+        platformStats.yourCitations++;
+      } else {
+        const existing = competitorData.get(domain) || {
+          citations: 0,
+          platforms: new Set<string>(),
+          coCitations: 0,
+          lastSeen: citation.created_at,
+        };
+
+        existing.citations++;
+        existing.platforms.add(platform);
+        existing.lastSeen = citation.created_at;
+
+        competitorData.set(domain, existing);
+
+        const compCount = platformStats.competitorCitations.get(domain) || 0;
+        platformStats.competitorCitations.set(domain, compCount + 1);
       }
     }
 
-    const totalCitations = yourCitations + Array.from(competitorCounts.values()).reduce((sum, count) => sum + count, 0);
+    const totalCitations = yourCitations + Array.from(competitorData.values())
+      .reduce((sum, data) => sum + data.citations, 0);
 
-    const competitors: CompetitorStats[] = Array.from(competitorCounts.entries())
-      .map(([name, citations]) => ({
-        name,
-        citations,
-        percentage: totalCitations > 0 ? Math.round((citations / totalCitations) * 1000) / 10 : 0,
+    const generateDisplayName = (domain: string): string => {
+      return domain.split('.')[0]
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
+    const competitors: CompetitorStats[] = Array.from(competitorData.entries())
+      .map(([domain, data]) => ({
+        name: generateDisplayName(domain),
+        domain,
+        citations: data.citations,
+        percentage: totalCitations > 0 ? Math.round((data.citations / totalCitations) * 1000) / 10 : 0,
+        platforms: Array.from(data.platforms),
+        coCitationFrequency: data.coCitations,
+        lastSeen: data.lastSeen,
       }))
       .sort((a, b) => b.citations - a.citations)
-      .slice(0, 10);
+      .slice(0, 15);
+
+    const platformBreakdown: PlatformBreakdown[] = Array.from(platformData.entries())
+      .map(([platform, data]) => ({
+        platform,
+        yourCitations: data.yourCitations,
+        yourPercentage: data.totalCitations > 0
+          ? Math.round((data.yourCitations / data.totalCitations) * 1000) / 10
+          : 0,
+        totalCitations: data.totalCitations,
+        competitors: Array.from(data.competitorCitations.entries())
+          .map(([domain, count]) => ({
+            name: generateDisplayName(domain),
+            citations: count,
+            percentage: data.totalCitations > 0
+              ? Math.round((count / data.totalCitations) * 1000) / 10
+              : 0,
+          }))
+          .sort((a, b) => b.citations - a.citations)
+          .slice(0, 5),
+      }))
+      .sort((a, b) => b.totalCitations - a.totalCitations);
+
+    const totalTests = new Set(citations?.map(c => c.keyword_id) || []).size;
+
+    const topCompetitor = competitors.length > 0 ? competitors[0].name : undefined;
+
+    const top3Share = competitors.slice(0, 3)
+      .reduce((sum, c) => sum + c.percentage, 0);
+    const marketConcentration = Math.round(top3Share * 100) / 100;
 
     const response: ShareOfVoiceResponse = {
       yourBrand: {
-        name: yourDomain,
+        name: generateDisplayName(normalizedYourDomain),
+        domain: normalizedYourDomain,
         citations: yourCitations,
         percentage: totalCitations > 0 ? Math.round((yourCitations / totalCitations) * 1000) / 10 : 0,
+        platforms: Array.from(yourPlatforms),
       },
       competitors,
+      platformBreakdown,
+      insights: {
+        topCompetitor,
+        marketConcentration,
+        averageCitationsPerTest: totalTests > 0 ? Math.round((totalCitations / totalTests) * 100) / 100 : 0,
+        totalUniqueDomains: uniqueDomainsSet.size,
+      },
       totalTests,
       dateRange: {
         start: startDate,
@@ -202,7 +327,7 @@ Deno.serve(async (req: Request) => {
       },
     };
 
-    console.log(`Share of voice calculated: ${response.yourBrand.percentage}%`);
+    console.log(`Share of voice calculated: ${response.yourBrand.percentage}% across ${response.platformBreakdown.length} platforms`);
 
     return new Response(
       JSON.stringify(response),

@@ -9,17 +9,62 @@ import { ShareOfVoiceChart } from "@/components/share-of-voice-chart";
 import { SentimentTrendChart } from "@/components/sentiment-trend-chart";
 import { PlatformRadarChart } from "@/components/platform-radar-chart";
 import { CitationTimelineChart } from "@/components/citation-timeline-chart";
+import { SOVCompetitorTable } from "@/components/sov-competitor-table";
+import { PlatformSOVBreakdown } from "@/components/platform-sov-breakdown";
+import { SOVGapInsights } from "@/components/sov-gap-insights";
+import { SOVExportButton } from "@/components/sov-export-button";
 import { BarChart3, TrendingUp, Target, Clock, AlertCircle, Shield } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
+
+interface SOVData {
+  yourBrand: {
+    name: string;
+    domain: string;
+    citations: number;
+    percentage: number;
+    platforms: string[];
+  };
+  competitors: Array<{
+    name: string;
+    domain: string;
+    citations: number;
+    percentage: number;
+    platforms: string[];
+    coCitationFrequency: number;
+    trend?: 'rising' | 'falling' | 'stable';
+    lastSeen?: string;
+  }>;
+  platformBreakdown: Array<{
+    platform: string;
+    yourCitations: number;
+    yourPercentage: number;
+    totalCitations: number;
+    competitors: Array<{
+      name: string;
+      citations: number;
+      percentage: number;
+    }>;
+  }>;
+  insights: {
+    topCompetitor?: string;
+    marketConcentration: number;
+    averageCitationsPerTest: number;
+    totalUniqueDomains: number;
+  };
+  totalTests: number;
+}
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d">("30d");
   const [criticalIssues, setCriticalIssues] = useState(0);
+  const [sovData, setSOVData] = useState<SOVData | null>(null);
+  const [loadingSOV, setLoadingSOV] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     loadCriticalIssues();
-  }, []);
+    loadSOVData();
+  }, [dateRange]);
 
   const loadCriticalIssues = async () => {
     try {
@@ -50,6 +95,54 @@ export default function AnalyticsPage() {
       setCriticalIssues(citations?.length || 0);
     } catch (error) {
       console.error('Error loading critical issues:', error);
+    }
+  };
+
+  const loadSOVData = async () => {
+    setLoadingSOV(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data: websites } = await supabase
+        .from('websites')
+        .select('id')
+        .eq('user_id', userData.user.id);
+
+      if (!websites || websites.length === 0) return;
+
+      const websiteId = (websites as { id: string }[])[0].id;
+
+      const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/calculate-share-of-voice`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            websiteId,
+            dateRange: {
+              start: startDate.toISOString(),
+              end: new Date().toISOString(),
+            },
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setSOVData(data);
+      }
+    } catch (error) {
+      console.error('Error loading SOV data:', error);
+    } finally {
+      setLoadingSOV(false);
     }
   };
 
@@ -103,9 +196,11 @@ export default function AnalyticsPage() {
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0%</div>
+                <div className="text-2xl font-bold">
+                  {sovData ? `${sovData.yourBrand.percentage.toFixed(1)}%` : '0%'}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  vs competitors
+                  {sovData ? `vs ${sovData.competitors.length} competitors` : 'vs competitors'}
                 </p>
               </CardContent>
             </Card>
@@ -148,8 +243,9 @@ export default function AnalyticsPage() {
           </div>
 
           <Tabs defaultValue="share-of-voice" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="share-of-voice">Share of Voice</TabsTrigger>
+              <TabsTrigger value="competitors">Competitors</TabsTrigger>
               <TabsTrigger value="sentiment">Sentiment Trends</TabsTrigger>
               <TabsTrigger value="platforms">Platform Radar</TabsTrigger>
               <TabsTrigger value="timeline">Citation Timeline</TabsTrigger>
@@ -167,6 +263,80 @@ export default function AnalyticsPage() {
                   <ShareOfVoiceChart dateRange={dateRange} />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="competitors" className="space-y-6">
+              {loadingSOV ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">Loading competitive intelligence...</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : sovData && sovData.competitors.length > 0 ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-2xl font-bold">Competitive Intelligence</h2>
+                      <p className="text-muted-foreground">
+                        Comprehensive analysis of your AI citation performance
+                      </p>
+                    </div>
+                    <SOVExportButton
+                      data={{
+                        ...sovData,
+                        dateRange: {
+                          start: new Date(Date.now() - (dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90) * 24 * 60 * 60 * 1000).toISOString(),
+                          end: new Date().toISOString(),
+                        },
+                      }}
+                    />
+                  </div>
+
+                  <SOVCompetitorTable
+                    yourBrand={sovData.yourBrand}
+                    competitors={sovData.competitors}
+                    totalTests={sovData.totalTests}
+                    marketConcentration={sovData.insights.marketConcentration}
+                    topCompetitor={sovData.insights.topCompetitor}
+                  />
+
+                  {sovData.platformBreakdown.length > 0 && (
+                    <PlatformSOVBreakdown
+                      platformBreakdown={sovData.platformBreakdown}
+                      yourBrandName={sovData.yourBrand.name}
+                    />
+                  )}
+
+                  {sovData.competitors.length > 0 && (
+                    <SOVGapInsights
+                      yourSOV={sovData.yourBrand.percentage}
+                      topCompetitorSOV={sovData.competitors[0]?.percentage || 0}
+                      topCompetitorName={sovData.competitors[0]?.name || 'Unknown'}
+                      marketConcentration={sovData.insights.marketConcentration}
+                      totalUniqueDomains={sovData.insights.totalUniqueDomains}
+                      platformBreakdown={sovData.platformBreakdown}
+                    />
+                  )}
+                </>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Competitor Data Yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Start tracking keywords to see competitive intelligence
+                      </p>
+                      <Button onClick={() => router.push('/keywords')}>
+                        Add Keywords
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="sentiment" className="space-y-4">
