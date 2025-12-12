@@ -1,16 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { ShareOfVoiceChart } from "@/components/share-of-voice-chart";
 import { SentimentTrendChart } from "@/components/sentiment-trend-chart";
 import { PlatformRadarChart } from "@/components/platform-radar-chart";
 import { CitationTimelineChart } from "@/components/citation-timeline-chart";
-import { BarChart3, TrendingUp, Target, Clock } from "lucide-react";
+import { BarChart3, TrendingUp, Target, Clock, AlertCircle, Shield } from "lucide-react";
+import { supabase } from "@/utils/supabase/client";
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d">("30d");
+  const [criticalIssues, setCriticalIssues] = useState(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    loadCriticalIssues();
+  }, []);
+
+  const loadCriticalIssues = async () => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data: websites } = await supabase
+        .from('websites')
+        .select('id')
+        .eq('user_id', userData.user.id);
+
+      if (!websites || websites.length === 0) return;
+
+      const websiteId = (websites as { id: string }[])[0].id;
+
+      const { data: citations } = await supabase
+        .from('citations')
+        .select(`
+          id,
+          requires_action,
+          action_taken,
+          tracked_keywords!inner(website_id)
+        `)
+        .eq('tracked_keywords.website_id', websiteId)
+        .eq('requires_action', true)
+        .eq('action_taken', false);
+
+      setCriticalIssues(citations?.length || 0);
+    } catch (error) {
+      console.error('Error loading critical issues:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -43,7 +84,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Citations</CardTitle>
@@ -78,6 +119,30 @@ export default function AnalyticsPage() {
                 <p className="text-xs text-muted-foreground">
                   Across all citations
                 </p>
+              </CardContent>
+            </Card>
+            <Card className={criticalIssues > 0 ? "border-red-300 bg-red-50" : ""}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
+                <AlertCircle className={`h-4 w-4 ${criticalIssues > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${criticalIssues > 0 ? 'text-red-600' : ''}`}>
+                  {criticalIssues}
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Require immediate attention
+                </p>
+                {criticalIssues > 0 && (
+                  <Button
+                    size="sm"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => router.push('/reputation')}
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    View Issues
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
