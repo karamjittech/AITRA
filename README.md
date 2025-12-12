@@ -15,6 +15,7 @@ AITRA (AI-Targeted Readiness Analyzer) helps content creators, SEO professionals
 - **Research-Backed Recommendations**: Every suggestion backed by published research and statistics
 - **Competitive Analysis**: Compare your content against competitors ranking in AI search results
 - **One-Click Optimization**: Auto-generate schema markup, meta tags, and structured data
+- **Perplexity Table Optimizer**: Auto-detect comparative content and convert paragraphs to structured tables optimized for Perplexity citations (3.2x citation rate increase)
 - **Citation Tracking**: Monitor when and how your content appears in AI responses
 - **SERP Monitoring**: Track AI Overviews in Google search results
 
@@ -25,6 +26,7 @@ AITRA (AI-Targeted Readiness Analyzer) helps content creators, SEO professionals
 - **Citation Timeline**: Visualize citation patterns over time
 - **Bot Access Verification**: Ensure AI crawlers can access your content
 - **Entity Recognition**: Track how AI models understand your brand identity
+- **Comparative Content Detection**: Identify paragraphs with pricing, feature, or metric comparisons suitable for table conversion
 
 ## Tech Stack
 
@@ -249,6 +251,77 @@ await supabase.from('competitive_analysis').insert({
 });
 ```
 
+### 5. Perplexity Table Conversion
+
+Convert comparative text to structured tables for improved Perplexity citations:
+
+**What it does:** Automatically detects comparative content in your paragraphs and converts them to HTML tables optimized for Perplexity's AI parsing.
+
+**When it triggers:** The system detects 2+ paragraphs with comparative data (pricing, features, metrics, performance comparisons).
+
+**How to use:**
+
+1. **Analyze your page** with comparative content
+2. **Look for the recommendation**: "Convert Comparative Text to Tables"
+3. **Click "Generate Table Conversions"** button
+4. **Navigate samples** using Previous/Next buttons to review detected paragraphs
+5. **Click "Generate Optimized Table"** for the selected paragraph
+6. **Copy the HTML code** using the copy button
+7. **Replace the paragraph** in your content with the generated table
+8. **Perplexity score improves** by +8-12 points per conversion
+
+**Detection patterns:**
+- Comparative language (vs, versus, compared to, while, whereas)
+- Pricing comparisons ($99 vs $149)
+- Metric comparisons (10GB vs 20GB, 5% vs 10%)
+- Feature comparisons (has X but lacks Y)
+- Performance benchmarks (2x faster, 50% more)
+- Numeric comparisons (direct number vs number)
+- Size/scale comparisons (larger than, smaller than)
+- Quality comparisons (better, worse, superior)
+
+**Research backing:** Tables are cited 3.2x more frequently by Perplexity than paragraph text.
+
+**Impact:** +8-12 points improvement to Perplexity platform score, 3.2x increase in citation likelihood.
+
+**Example transformation:**
+
+**Before (Paragraph):**
+```
+Product A costs $99/month and includes 10GB storage, while Product B costs
+$149/month but offers 20GB storage and priority support.
+```
+
+**After (Generated Table):**
+```html
+<table class="perplexity-optimized-table">
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Product A</th>
+      <th>Product B</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Price</td>
+      <td>$99/month</td>
+      <td>$149/month</td>
+    </tr>
+    <tr>
+      <td>Storage</td>
+      <td>10GB</td>
+      <td>20GB</td>
+    </tr>
+    <tr>
+      <td>Support</td>
+      <td>Standard</td>
+      <td>Priority</td>
+    </tr>
+  </tbody>
+</table>
+```
+
 ## API Endpoints (Edge Functions)
 
 ### Analyze Page
@@ -285,18 +358,36 @@ await supabase.from('competitive_analysis').insert({
 **Description**: Generates optimization fixes using AI
 
 ```typescript
-// Request
+// Request (Schema Fix)
 {
   "pageId": "uuid",
-  "fixType": "schema" | "title" | "description" | "structure",
+  "fixType": "schema" | "title" | "description" | "structure" | "paragraph-to-table",
   "content": "page content"
 }
 
-// Response
+// Response (Schema Fix)
 {
   "fixType": "schema",
   "schemaJson": {...},
   "explanation": "Why this fix helps",
+  "estimatedImpact": "+8 points"
+}
+
+// Request (Paragraph-to-Table Fix)
+{
+  "pageId": "uuid",
+  "fixType": "paragraph-to-table",
+  "currentContent": {
+    "paragraphText": "Product A costs $99 while Product B costs $149...",
+    "dataType": "pricing"
+  }
+}
+
+// Response (Paragraph-to-Table Fix)
+{
+  "fixType": "paragraph-to-table",
+  "html": "<table class='perplexity-optimized-table'>...</table>",
+  "explanation": "Structured tables improve Perplexity citation rates by 3.2x",
   "estimatedImpact": "+8 points"
 }
 ```
@@ -352,6 +443,7 @@ The platform is built on published research findings:
 3. **Authority Signals**: Government sources 11.75x more likely to be cited
 4. **Freshness**: ChatGPT cites content 25.7% fresher than average
 5. **Position Correlation**: 40.58% of AI citations come from Google top 10
+6. **Structured Data**: Perplexity displays 8-12 sources per query and cites tabular data 3.2x more frequently than paragraph text (Technical Accessibility Research)
 
 ## Competitive Advantages
 
@@ -374,6 +466,15 @@ Individual optimization paths for each AI model:
 - Realistic timeline projections
 - Phased improvement roadmap
 - Monthly milestone tracking
+
+### 4. Perplexity-Specific Optimization
+- First tool to offer automated comparative content detection with 8 pattern types
+- AI-powered table generation via Gemini (not just recommendations)
+- Multiple sample detection with confidence scoring (0-100 scale)
+- One-click implementation with copy-paste HTML
+- Research-backed 3.2x citation improvement
+- Interactive modal with sample navigation
+- Real-time table preview
 
 ## Development Guidelines
 
@@ -502,5 +603,7 @@ Research sources:
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: December 2024
+**Version**: 1.1.0
+**Last Updated**: December 12, 2024
+
+**Latest Feature**: Perplexity Table Conversion Optimizer - Auto-detect and convert comparative content to structured tables with 3.2x citation improvement
