@@ -28,6 +28,15 @@ AITRA (AI-Targeted Readiness Analyzer) helps content creators, SEO professionals
 - **Entity Recognition**: Track how AI models understand your brand identity
 - **Comparative Content Detection**: Identify paragraphs with pricing, feature, or metric comparisons suitable for table conversion
 
+### Admin Panel & AppSumo Integration
+
+- **LTD Code Manager**: Bulk upload, search, filter, and revoke AppSumo lifetime deal codes
+- **User Manager**: Search users, manually adjust credits, change tiers for support scenarios
+- **System Health Monitor**: Track API costs, credit consumption, and usage breakdown by feature
+- **Audit Logging**: Complete audit trail of all admin actions with timestamps and details
+- **Redemption System**: User-facing code redemption page with automatic tier upgrades and code stacking
+- **Security**: Admin-only access via middleware protection and is_admin flag verification
+
 ## Tech Stack
 
 ### Frontend
@@ -45,6 +54,7 @@ AITRA (AI-Targeted Readiness Analyzer) helps content creators, SEO professionals
 - **Session Management**: @supabase/ssr
 - **Serverless Functions**: Supabase Edge Functions (Deno runtime)
 - **API Client**: Supabase JavaScript Client
+- **Admin Functions**: PostgreSQL SECURITY DEFINER functions for privileged operations
 
 ### External Services
 - **Web Scraping**: Jina.ai Reader API (for content extraction)
@@ -93,11 +103,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 The database schema is already created via migrations. The schema includes:
 
 **Core Tables:**
-- `users` - User accounts with GSC integration
+- `users` - User accounts with subscription, credits, and admin flags
 - `websites` - Tracked websites
 - `tracked_keywords` - Keywords being monitored
 - `page_data` - Scraped page content and metadata
 - `scores` - AI readiness scores
+- `redemption_codes` - AppSumo LTD codes with revocation tracking
+- `admin_actions` - Audit log of all admin operations
 
 **Analytics Tables:**
 - `serp_snapshots` - AI Overview tracking data
@@ -118,10 +130,16 @@ All tables have Row Level Security (RLS) enabled with proper policies.
 
 The platform includes a complete authentication and tiered subscription system:
 
-**Subscription Tiers:**
+**Regular Subscription Tiers:**
 - **Free**: 1 website, 3 keywords, 50 AI credits/month
 - **Pro** ($39/month): 3 websites, 50 keywords, 500 AI credits/month
 - **Agency** ($119/month): 15 websites, 250 keywords, 2,500 AI credits/month
+
+**AppSumo Lifetime Deal Tiers:**
+- **Tier 1 - Starter**: 3 websites, 25 keywords, 100 AI credits/month (lifetime)
+- **Tier 2 - Professional**: 10 websites, 100 keywords, 250 AI credits/month (lifetime)
+- **Tier 3 - Agency**: 50 websites, 500 keywords, 500 AI credits/month (lifetime)
+- **Code Stacking**: Users can redeem multiple codes to upgrade tiers (Tier 1 → Tier 2 → Tier 3)
 
 **Authentication Methods:**
 - Email/Password authentication
@@ -142,6 +160,10 @@ The system automatically restricts features based on subscription tier and avail
 
 **User Profile Fields:**
 - `subscription_plan`: free, pro, or agency
+- `appsumo_tier`: 0 (free), 1, 2, or 3 for LTD users
+- `is_lifetime_deal`: Boolean flag for AppSumo customers
+- `is_admin`: Boolean flag for admin panel access
+- `codes_redeemed`: Array of redeemed AppSumo codes
 - `credits_total`: Monthly credit allocation
 - `credits_used`: Credits consumed this cycle
 - `websites_limit`: Max websites allowed
@@ -176,6 +198,18 @@ project/
 │   ├── login/                   # Login page
 │   ├── signup/                  # Signup page
 │   ├── pricing/                 # Pricing page
+│   ├── redeem/                  # AppSumo code redemption page
+│   ├── admin/                   # Admin panel
+│   │   ├── layout.tsx           # Admin layout with navigation
+│   │   ├── page.tsx             # Admin dashboard
+│   │   ├── codes/page.tsx       # LTD Code Manager
+│   │   ├── users/page.tsx       # User Manager
+│   │   └── system/page.tsx      # System Health Monitor
+│   ├── api/                     # API routes
+│   │   ├── redeem/route.ts      # Code redemption API
+│   │   └── admin/               # Admin API endpoints
+│   │       ├── codes/revoke/    # Revoke code API
+│   │       └── users/           # User management APIs
 │   ├── auth/callback/           # OAuth callback handler
 │   └── globals.css              # Global styles
 ├── components/                   # React components
@@ -199,7 +233,8 @@ project/
 │   ├── utils.ts                 # Helper functions
 │   ├── bot-verification.ts      # Bot access checks
 │   ├── mock-competitors.ts      # Sample competitor data
-│   └── phase-calculator.ts      # Optimization phases
+│   ├── phase-calculator.ts      # Optimization phases
+│   └── appsumo-tiers.ts         # AppSumo tier definitions & validation
 ├── utils/supabase/              # Supabase configuration
 │   ├── client.ts                # Client-side Supabase client
 │   ├── server.ts                # Server-side Supabase client
@@ -303,7 +338,52 @@ await supabase.from('competitive_analysis').insert({
 });
 ```
 
-### 5. Perplexity Table Conversion
+### 5. Managing AppSumo Lifetime Deals
+
+**Code Redemption (End User Flow):**
+
+```typescript
+// User visits /redeem page and enters code
+// System validates code format (LTD-T1-XXXX, LTD-T2-XXXX, LTD-T3-XXXX)
+// API checks if code is valid, unclaimed, and not revoked
+// User tier upgraded automatically (or stacked to next tier)
+// User redirected to dashboard with new limits applied
+```
+
+**Admin Code Management:**
+
+```typescript
+// Navigate to /admin/codes
+// Bulk upload codes via CSV (code, tier columns)
+// Search and filter codes by tier, status, user email
+// View claimed/unclaimed count statistics
+// Revoke codes for refunds (automatically downgrades user tier)
+```
+
+**Admin User Management:**
+
+```typescript
+// Navigate to /admin/users
+// Search users by email, tier, or lifetime deal status
+// Manually adjust credits (positive or negative)
+  - Use case: "Make good" for support issues
+  - Example: +50 credits for bug compensation
+// Change user tier manually
+  - Use case: Emergency tier change or migration
+  - Automatically updates limits based on new tier
+```
+
+**Admin System Monitoring:**
+
+```typescript
+// Navigate to /admin/system
+// View total API costs (estimated)
+// Monitor credit consumption by feature
+// Track usage patterns for capacity planning
+// Identify potential cost overruns before they happen
+```
+
+### 6. Perplexity Table Conversion
 
 Convert comparative text to structured tables for improved Perplexity citations:
 
@@ -455,6 +535,94 @@ $149/month but offers 20GB storage and priority support.
 **Function**: `calculate-share-of-voice`
 **Method**: POST
 **Description**: Calculates competitive positioning metrics
+
+## Admin API Endpoints
+
+### Revoke Redemption Code
+
+**Endpoint**: `/api/admin/codes/revoke`
+**Method**: POST
+**Description**: Revokes an AppSumo code and downgrades the user
+**Auth**: Requires is_admin = true
+
+```typescript
+// Request
+{
+  "code": "LTD-T1-ABCD1234",
+  "reason": "Refund processed"
+}
+
+// Response (Success)
+{
+  "success": true,
+  "message": "Code revoked successfully",
+  "code": "LTD-T1-ABCD1234",
+  "user_email": "user@example.com",
+  "old_tier": 1,
+  "new_tier": 0
+}
+
+// Response (Error)
+{
+  "success": false,
+  "error": "Code not found" | "Code not claimed" | "Unauthorized"
+}
+```
+
+### Adjust User Credits
+
+**Endpoint**: `/api/admin/users/adjust-credits`
+**Method**: POST
+**Description**: Manually adjust user's credit balance
+**Auth**: Requires is_admin = true
+
+```typescript
+// Request
+{
+  "user_id": "uuid",
+  "credit_change": 50,  // Can be positive or negative
+  "reason": "Compensation for bug"
+}
+
+// Response (Success)
+{
+  "success": true,
+  "message": "Credits adjusted successfully",
+  "user_email": "user@example.com",
+  "old_total": 100,
+  "new_total": 150
+}
+```
+
+### Change User Tier
+
+**Endpoint**: `/api/admin/users/change-tier`
+**Method**: POST
+**Description**: Manually change user's tier and limits
+**Auth**: Requires is_admin = true
+
+```typescript
+// Request
+{
+  "user_id": "uuid",
+  "new_tier": 2,  // 0 (free), 1, 2, or 3
+  "reason": "Manual tier migration"
+}
+
+// Response (Success)
+{
+  "success": true,
+  "message": "Tier changed successfully",
+  "user_email": "user@example.com",
+  "old_tier": 1,
+  "new_tier": 2,
+  "new_limits": {
+    "credits": 250,
+    "websites": 10,
+    "keywords": 100
+  }
+}
+```
 
 ## Database Schema
 
@@ -655,10 +823,13 @@ Research sources:
 
 ---
 
-**Version**: 1.2.0
-**Last Updated**: December 12, 2024
+**Version**: 1.3.0
+**Last Updated**: December 13, 2024
 
 **Latest Features**:
-- Authentication & Tiered Subscription System (Free/Pro/Agency)
+- **Admin Panel for AppSumo Launch**: Complete admin interface with LTD code management, user management, and system health monitoring
+- AppSumo Lifetime Deal Integration: 3-tier LTD system with code stacking, redemption, and revocation
+- Authentication & Tiered Subscription System (Free/Pro/Agency + AppSumo Tiers)
 - Credit-based AI feature usage with automatic tracking
 - Perplexity Table Conversion Optimizer - Auto-detect and convert comparative content to structured tables with 3.2x citation improvement
+- Audit Logging: Complete trail of all admin actions for compliance and debugging

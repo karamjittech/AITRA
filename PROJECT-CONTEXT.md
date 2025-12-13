@@ -1,8 +1,8 @@
 # PROJECT CONTEXT: AITRA (AI-Targeted Readiness Analyzer)
 
-**Last Updated:** December 12, 2024
-**Version:** 1.2.0
-**Status:** MVP Operational with Authentication, Subscriptions & Perplexity Table Optimizer
+**Last Updated:** December 13, 2024
+**Version:** 1.3.0
+**Status:** MVP Operational with Auth, Subscriptions, Perplexity Optimizer & Admin Panel
 
 ---
 
@@ -236,6 +236,7 @@ AI search engines (ChatGPT, Claude, Gemini, Perplexity) are changing how people 
 #### 13. Authentication & Subscription System
 - **Status:** Fully operational
 - **Location:** Multiple files
+- **Updated:** December 13, 2024 - Added AppSumo LTD support
 - **Authentication Methods:**
   - Email/Password authentication
   - Google OAuth integration
@@ -269,10 +270,71 @@ AI search engines (ChatGPT, Claude, Gemini, Perplexity) are changing how people 
   - `components/pricing-modal.tsx` - Upgrade prompt
   - `components/nav-bar.tsx` - Updated with user menu and usage tracker
 - **Database:**
-  - Extended users table with 9 new fields
+  - Extended users table with AppSumo and admin fields
   - New table: credits_usage for consumption tracking
+  - New table: redemption_codes for LTD codes
   - Helper functions: get_credits_remaining, deduct_credits
   - RLS policies for all credit operations
+
+#### 14. Admin Panel for AppSumo Launch (CORE FEATURE)
+- **Status:** Fully operational
+- **Location:** `/app/admin/*` + `/app/api/admin/*` + `/app/redeem`
+- **Purpose:** Manage AppSumo lifetime deal codes, users, and monitor system health
+- **Components:**
+  - **LTD Code Manager** (`/admin/codes`)
+    - Bulk upload codes via CSV parsing
+    - Real-time search and filtering (by tier, status, user email)
+    - View statistics (total, claimed, unclaimed by tier)
+    - One-click code revocation with automatic user downgrade
+  - **User Manager** (`/admin/users`)
+    - Search users by email, tier, or LTD status
+    - Manual credit adjustments (+/- for "make good" scenarios)
+    - Emergency tier changes with automatic limit updates
+    - View user details and redemption history
+  - **System Health Monitor** (`/admin/system`)
+    - Track estimated API costs by feature
+    - Monitor credit consumption breakdown
+    - Usage pattern analysis for capacity planning
+    - Cost overrun prevention alerts
+  - **Redemption Page** (`/redeem`)
+    - User-facing code redemption interface
+    - Code format validation (LTD-T1-XXXX, etc.)
+    - Automatic tier upgrades and code stacking
+    - Success/error feedback with tier details
+- **Security Features:**
+  - Middleware protection for all `/admin` routes
+  - `is_admin` flag verification on all operations
+  - PostgreSQL SECURITY DEFINER functions for privileged ops
+  - RLS policies restricting admin data access
+  - Complete audit trail in `admin_actions` table
+- **Admin API Endpoints:**
+  - POST `/api/admin/codes/revoke` - Revoke code and downgrade user
+  - POST `/api/admin/users/adjust-credits` - Adjust user credit balance
+  - POST `/api/admin/users/change-tier` - Change user tier manually
+- **Database Tables:**
+  - `redemption_codes` - Extended with revocation tracking
+  - `admin_actions` - Complete audit log of all admin operations
+  - `users.is_admin` - Boolean flag for admin access
+  - `users.codes_redeemed` - Array of redeemed LTD codes
+- **Helper Functions (PostgreSQL):**
+  - `revoke_redemption_code(code, admin_id, reason)` - SECURITY DEFINER
+  - `adjust_user_credits(user_id, change, admin_id, reason)` - SECURITY DEFINER
+  - `change_user_tier(user_id, new_tier, admin_id, reason)` - SECURITY DEFINER
+- **AppSumo Tier System:**
+  - Tier 1: 3 sites, 25 keywords, 100 credits/month
+  - Tier 2: 10 sites, 100 keywords, 250 credits/month
+  - Tier 3: 50 sites, 500 keywords, 500 credits/month
+  - Code stacking: Users can redeem multiple codes to upgrade
+  - Code format: `LTD-T[1-3]-[ALPHANUMERIC]`
+- **Audit Logging:**
+  - Every admin action logged with timestamp
+  - Captures: admin_id, admin_email, action_type, target_user
+  - Stores before/after values in JSONB details field
+  - Searchable and filterable for compliance
+- **Navbar Integration:**
+  - "Admin Panel" link visible only to admins
+  - Badge indicator for admin status
+  - Quick access from any page
 
 ### 🚧 In Progress
 
@@ -505,6 +567,10 @@ created_at TIMESTAMPTZ DEFAULT NOW()
 gsc_connected BOOLEAN DEFAULT FALSE
 gsc_property_url TEXT
 subscription_plan VARCHAR(20) DEFAULT 'free'
+appsumo_tier INT DEFAULT 0
+is_lifetime_deal BOOLEAN DEFAULT FALSE
+is_admin BOOLEAN DEFAULT FALSE
+codes_redeemed TEXT[] DEFAULT '{}'::TEXT[]
 credits_total INT DEFAULT 50
 credits_used INT DEFAULT 0
 websites_limit INT DEFAULT 1
@@ -515,9 +581,11 @@ subscription_status VARCHAR(20)
 billing_cycle_start TIMESTAMPTZ
 billing_cycle_end TIMESTAMPTZ
 ```
-**Purpose:** User accounts with subscription, credit allocation, and billing information
+**Purpose:** User accounts with subscription, credit allocation, billing information, and admin flags
 **RLS:** Users can only view/update their own record
 **Subscription Plans:** free (default), pro, agency
+**AppSumo Tiers:** 0 (free), 1 (starter), 2 (professional), 3 (agency)
+**Admin Access:** is_admin flag enables /admin panel access
 **Credit Allocation:** Free=50, Pro=500, Agency=2500 credits per month
 
 #### 2. websites
@@ -805,6 +873,70 @@ metadata JSONB DEFAULT '{}'::JSONB
 **Action Types:** sentiment, fan_out, sov, schema, eeat, citation_context
 **Metadata:** Stores additional context (page_id, feature details, etc.)
 **RLS:** Users can view own usage history, system can insert consumption records
+
+#### 17. redemption_codes
+```sql
+id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+code TEXT UNIQUE NOT NULL
+tier INT NOT NULL
+is_claimed BOOLEAN DEFAULT FALSE
+redeemed_by UUID REFERENCES users(id) ON DELETE SET NULL
+redeemed_at TIMESTAMPTZ
+revoked_at TIMESTAMPTZ
+revoked_by UUID REFERENCES users(id) ON DELETE SET NULL
+revoke_reason TEXT
+created_at TIMESTAMPTZ DEFAULT NOW()
+```
+**Purpose:** AppSumo lifetime deal redemption codes with revocation tracking
+**Tiers:** 1 (starter), 2 (professional), 3 (agency)
+**Code Format:** LTD-T[1-3]-[ALPHANUMERIC] (e.g., LTD-T1-ABCD1234)
+**Revocation:** When revoked, user is automatically downgraded one tier (or to free if no other codes)
+**RLS:** Admins can view/edit all codes, users can view their own redeemed codes
+
+#### 18. admin_actions
+```sql
+id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+admin_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+admin_email TEXT NOT NULL
+action_type TEXT NOT NULL
+target_user_id UUID REFERENCES users(id) ON DELETE SET NULL
+target_user_email TEXT
+details JSONB DEFAULT '{}'::JSONB
+created_at TIMESTAMPTZ DEFAULT NOW()
+```
+**Purpose:** Complete audit log of all admin operations for compliance and debugging
+**Action Types:** code_upload, code_revoke, credit_adjust, tier_change, user_impersonate
+**Details Field:** JSONB storing action-specific data (amount, reason, old_value, new_value, etc.)
+**Indexes:** admin_id, target_user_id, created_at DESC, action_type
+**RLS:** Only admins can view, admins can only insert their own actions
+**Retention:** Permanent record for compliance and security auditing
+
+### PostgreSQL Helper Functions
+
+**revoke_redemption_code(code TEXT, admin_id UUID, reason TEXT)**
+- SECURITY DEFINER function (runs with elevated privileges)
+- Marks code as revoked and downgrades user tier automatically
+- Removes code from user's codes_redeemed array
+- If no codes remain, reverts user to free tier (tier 0)
+- If codes remain, downgrades by one tier
+- Logs action in admin_actions table
+- Returns success/error JSONB with details
+
+**adjust_user_credits(user_id UUID, credit_change INT, admin_id UUID, reason TEXT)**
+- SECURITY DEFINER function
+- Adjusts user's credits_total by specified amount (can be positive or negative)
+- Prevents negative credit balances (minimum 0)
+- Logs action in admin_actions with before/after values
+- Returns success/error JSONB with old and new totals
+
+**change_user_tier(user_id UUID, new_tier INT, admin_id UUID, reason TEXT)**
+- SECURITY DEFINER function
+- Changes user's appsumo_tier to specified value (0, 1, 2, or 3)
+- Automatically updates credits_total, websites_limit, keywords_limit based on tier
+- Resets credits_used to 0 for fresh start
+- Sets is_lifetime_deal flag appropriately
+- Logs action in admin_actions with before/after tier values
+- Returns success/error JSONB with tier change details
 
 ### Indexes for Performance
 
@@ -1890,6 +2022,145 @@ Max: 30 points
 
 ## RECENT CHANGES
 
+### December 13, 2024 - Admin Panel for AppSumo Launch
+
+**Feature:** Complete admin interface for managing AppSumo lifetime deal codes and users
+
+**What Was Built:**
+
+1. **LTD Code Manager** (`/admin/codes`)
+   - Bulk CSV upload with real-time parsing and validation
+   - Search and filter codes by tier (1/2/3), status (claimed/unclaimed), and user email
+   - Statistics dashboard showing total codes, claimed/unclaimed breakdown by tier
+   - One-click code revocation with automatic user tier downgrade
+   - Code format validation: LTD-T[1-3]-[ALPHANUMERIC]
+   - Real-time table updates with sorting capabilities
+
+2. **User Manager** (`/admin/users`)
+   - Search users by email, AppSumo tier, or lifetime deal status
+   - View user details: email, tier, credits, limits, redeemed codes
+   - Manual credit adjustments (positive or negative)
+     - Use case: "Make good" for support issues
+     - Example: +50 credits for bug compensation
+     - Audit logged with reason and admin identity
+   - Emergency tier changes with automatic limit updates
+     - Automatically sets credits_total, websites_limit, keywords_limit based on tier
+     - Resets credits_used to 0 for fresh start
+     - Updates is_lifetime_deal flag appropriately
+   - View redemption history per user
+
+3. **System Health Monitor** (`/admin/system`)
+   - Estimated API cost tracking by feature
+   - Credit consumption breakdown (sentiment, schema, fan-out, eeat, sov)
+   - Total active users and AppSumo LTD user count
+   - Monthly credit usage statistics
+   - Cost projection and overrun alerts
+   - Usage pattern analysis for capacity planning
+
+4. **User Redemption Page** (`/redeem`)
+   - Clean, user-friendly code redemption interface
+   - Code format validation with helpful error messages
+   - Automatic tier upgrade based on code tier
+   - Code stacking support (redeem multiple codes to upgrade)
+   - Success screen showing new tier and limits
+   - Redirect to dashboard after successful redemption
+
+5. **Admin API Endpoints**
+   - `POST /api/admin/codes/revoke` - Revoke code and downgrade user
+   - `POST /api/admin/users/adjust-credits` - Adjust user credit balance
+   - `POST /api/admin/users/change-tier` - Change user tier manually
+   - `POST /api/redeem` - User code redemption endpoint
+   - All endpoints require authentication and admin verification
+   - Complete error handling with detailed error messages
+
+6. **Security Implementation**
+   - Middleware protection for all `/admin` routes
+   - `is_admin` flag verification on every admin operation
+   - PostgreSQL SECURITY DEFINER functions for privileged operations
+   - RLS policies restricting admin data to admins only
+   - Complete audit trail in `admin_actions` table
+   - Session validation on protected routes
+
+7. **Database Extensions**
+   - Extended `users` table with 4 new fields:
+     - `is_admin` (BOOLEAN) - Admin panel access flag
+     - `appsumo_tier` (INT) - LTD tier level (0-3)
+     - `is_lifetime_deal` (BOOLEAN) - LTD customer flag
+     - `codes_redeemed` (TEXT[]) - Array of redeemed codes
+   - Extended `redemption_codes` table with 5 new fields:
+     - `id` (UUID) - Primary key (changed from code)
+     - `is_claimed` (BOOLEAN) - Quick claim status check
+     - `revoked_at` (TIMESTAMPTZ) - Revocation timestamp
+     - `revoked_by` (UUID) - Admin who revoked
+     - `revoke_reason` (TEXT) - Reason for revocation
+   - New table: `admin_actions` (8 fields) - Complete audit log
+   - 3 PostgreSQL SECURITY DEFINER functions:
+     - `revoke_redemption_code(code, admin_id, reason)`
+     - `adjust_user_credits(user_id, change, admin_id, reason)`
+     - `change_user_tier(user_id, new_tier, admin_id, reason)`
+
+8. **AppSumo Tier System**
+   - Tier 1 (Starter): 3 websites, 25 keywords, 100 credits/month
+   - Tier 2 (Professional): 10 websites, 100 keywords, 250 credits/month
+   - Tier 3 (Agency): 50 websites, 500 keywords, 500 credits/month
+   - Code stacking: Users can redeem multiple codes to upgrade tiers
+   - Automatic limit application based on tier
+   - Monthly credit resets (planned scheduled job)
+
+**Database Changes:**
+- Migration: `20251213041142_extend_admin_panel_appsumo_support.sql`
+- Migration: `20251213035608_optimize_rls_auth_calls.sql` (performance optimization)
+- All changes are idempotent and safe to run multiple times
+- Comprehensive RLS policies for admin tables
+- Indexes for performance on high-traffic columns
+
+**Files Created:**
+- `app/admin/layout.tsx` - Admin panel layout with navigation
+- `app/admin/page.tsx` - Admin dashboard overview
+- `app/admin/codes/page.tsx` - LTD Code Manager interface
+- `app/admin/users/page.tsx` - User Manager interface
+- `app/admin/system/page.tsx` - System Health Monitor
+- `app/redeem/page.tsx` - User code redemption page
+- `app/api/redeem/route.ts` - Code redemption API handler
+- `app/api/admin/codes/revoke/route.ts` - Code revocation API
+- `app/api/admin/users/adjust-credits/route.ts` - Credit adjustment API
+- `app/api/admin/users/change-tier/route.ts` - Tier change API
+- `lib/appsumo-tiers.ts` - Tier definitions and validation utilities
+- `supabase/migrations/20251213041142_extend_admin_panel_appsumo_support.sql`
+- `supabase/migrations/20251213035608_optimize_rls_auth_calls.sql`
+
+**Files Modified:**
+- `components/nav-bar.tsx` - Added "Admin Panel" link for admins
+- `middleware.ts` - Added `/admin` route protection
+- `utils/supabase/types.ts` - Updated with new table types (auto-generated)
+
+**User Experience:**
+1. Admin logs in → Sees "Admin Panel" link in navbar
+2. Clicks Admin Panel → Redirected to `/admin` dashboard
+3. Three tabs available: Codes, Users, System
+4. Admin uploads CSV of codes → Codes instantly available for redemption
+5. User redeems code at `/redeem` → Tier upgraded automatically
+6. Admin can search users, adjust credits, change tiers, or revoke codes
+7. All actions logged in `admin_actions` for audit trail
+8. System Health Monitor shows real-time API costs and usage
+
+**Business Impact:**
+- AppSumo launch readiness complete
+- Full support for LTD code management
+- Ability to handle refunds via code revocation
+- "Make good" support through credit adjustments
+- Cost monitoring prevents budget overruns
+- Complete audit trail for compliance
+- Ready for immediate AppSumo campaign launch
+
+**Technical Notes:**
+- Used TypeScript `as any` casting to handle Supabase type inference issues with JSONB columns
+- SECURITY DEFINER functions bypass RLS for privileged operations (safe because they verify admin status internally)
+- All admin operations return detailed success/error JSONB for consistent API responses
+- Middleware checks is_admin flag before allowing access to any `/admin` route
+
+---
+
 ### December 12, 2024 - Authentication & Tiered Subscription System
 
 **Feature:** Complete authentication and subscription management system
@@ -2423,8 +2694,8 @@ Max: 30 points
 ## CONTACT & SUPPORT
 
 **Project Status:** Active Development
-**Version:** 1.2.0 (MVP + Authentication + Subscriptions + Perplexity Table Optimizer)
-**Last Updated:** December 12, 2024
+**Version:** 1.3.0 (MVP + Auth + Subscriptions + Perplexity Optimizer + Admin Panel)
+**Last Updated:** December 13, 2024
 
 **For Questions:**
 - Review this document first
