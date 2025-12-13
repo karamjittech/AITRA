@@ -13,6 +13,11 @@ export interface UserSubscription {
   subscription_status: string;
   billing_cycle_start: string | null;
   billing_cycle_end: string | null;
+  paddle_customer_id: string | null;
+  paddle_subscription_id: string | null;
+  payment_method: string;
+  next_bill_date: string | null;
+  is_lifetime_deal: boolean;
 }
 
 export interface SubscriptionCounts {
@@ -61,6 +66,11 @@ export function useSubscription() {
         subscription_status: userDataAny.subscription_status || "active",
         billing_cycle_start: userDataAny.billing_cycle_start,
         billing_cycle_end: userDataAny.billing_cycle_end,
+        paddle_customer_id: userDataAny.paddle_customer_id,
+        paddle_subscription_id: userDataAny.paddle_subscription_id,
+        payment_method: userDataAny.payment_method || 'free',
+        next_bill_date: userDataAny.next_bill_date,
+        is_lifetime_deal: userDataAny.is_lifetime_deal || false,
       });
 
       const { count: websitesCount } = await supabase

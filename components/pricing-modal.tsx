@@ -1,10 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, X } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
+import { usePaddle } from "@/hooks/use-paddle";
+import { PADDLE_CONFIG } from "@/lib/paddle-config";
+import { toast } from "sonner";
+import { supabase } from "@/utils/supabase/client";
 
 interface PricingModalProps {
   open: boolean;
@@ -38,15 +43,55 @@ const TIER_COMPARISON = {
 
 export function PricingModal({ open, onOpenChange, highlightTier = "pro" }: PricingModalProps) {
   const { subscription } = useSubscription();
+  const { openCheckout, isReady: paddleReady } = usePaddle();
   const router = useRouter();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const currentTier = subscription?.tier || "free";
   const targetTier = TIER_COMPARISON[highlightTier];
   const currentTierInfo = TIER_COMPARISON[currentTier];
 
-  const handleUpgrade = () => {
-    onOpenChange(false);
-    router.push("/pricing");
+  const handleUpgrade = async () => {
+    if (!paddleReady) {
+      toast.error('Payment system is loading, please wait...');
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('Please log in to upgrade');
+      onOpenChange(false);
+      router.push('/login');
+      return;
+    }
+
+    const subscriptionData = subscription as any;
+    if (subscriptionData?.is_lifetime_deal) {
+      toast.error('You already have a lifetime deal active');
+      return;
+    }
+
+    try {
+      setIsCheckingOut(true);
+
+      const priceId = highlightTier === 'pro'
+        ? PADDLE_CONFIG.priceIds.pro
+        : PADDLE_CONFIG.priceIds.agency;
+
+      await openCheckout({
+        priceId,
+        userId: user.id,
+        userEmail: user.email!,
+        tier: highlightTier as 'pro' | 'agency',
+      });
+
+      toast.success('Opening checkout...');
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to open checkout');
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
 
   return (
@@ -157,9 +202,13 @@ export function PricingModal({ open, onOpenChange, highlightTier = "pro" }: Pric
           <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
             Maybe Later
           </Button>
-          <Button className="flex-1" onClick={handleUpgrade}>
-            Upgrade Now
-            <ArrowRight className="ml-2 h-4 w-4" />
+          <Button
+            className="flex-1"
+            onClick={handleUpgrade}
+            disabled={isCheckingOut || !paddleReady}
+          >
+            {isCheckingOut ? 'Opening Checkout...' : 'Upgrade Now'}
+            {!isCheckingOut && <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
         </div>
 
