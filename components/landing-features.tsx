@@ -1,3 +1,5 @@
+"use client";
+
 import { PieChart, ThumbsUp, GitBranch, Table } from "lucide-react";
 
 export function LandingFeatures() {
@@ -14,56 +16,113 @@ export function LandingFeatures() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-          <div className="lg:col-span-2 lg:row-span-2 p-8 rounded-2xl border bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
-            <div className="relative z-10">
+          <div className="lg:col-span-2 lg:row-span-2 rounded-2xl border bg-card relative overflow-hidden group hover:shadow-xl transition-shadow">
+            <div className="p-6">
               <div className="mb-4">
-                <PieChart className="h-12 w-12 text-violet-600" />
+                <PieChart className="h-10 w-10 text-violet-600" />
               </div>
-              <h3 className="text-2xl font-bold mb-3">Share of Voice</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-2xl font-bold mb-2">Share of Voice</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Track your brand mentions across ChatGPT, Perplexity, Claude, and Gemini. See exactly how often you are cited compared to competitors.
               </p>
-              <div className="mt-8 p-6 rounded-xl bg-background/50 backdrop-blur">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Your Brand</span>
-                    <span className="text-2xl font-bold text-violet-600">38%</span>
+            </div>
+            <div className="relative h-64 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+              <img
+                src="/shot-sov.png"
+                alt="Share of Voice analytics with pie chart showing brand distribution"
+                className="w-full h-full object-cover object-left-top"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div
+                className="w-full h-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center"
+                style={{ display: "none" }}
+              >
+                <div className="text-center space-y-2 p-4">
+                  <div className="text-lg font-bold text-muted-foreground">
+                    Pie Chart Screenshot Here
                   </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full w-[38%] bg-gradient-to-r from-violet-600 to-fuchsia-600" />
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    /public/shot-sov.png
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border bg-card hover:shadow-lg transition-shadow">
-            <ThumbsUp className="h-10 w-10 text-emerald-600 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Sentiment Analysis</h3>
-            <p className="text-sm text-muted-foreground">
-              Monitor positive, neutral, and negative mentions. Get alerts when sentiment shifts.
-            </p>
-            <div className="mt-4 flex gap-2">
-              <div className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
-                Positive
-              </div>
-              <div className="px-3 py-1 rounded-full bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 text-xs font-medium">
-                Negative
+          <div className="rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
+            <div className="p-4">
+              <ThumbsUp className="h-8 w-8 text-emerald-600 mb-2" />
+              <h3 className="text-lg font-bold mb-1">Sentiment Analysis</h3>
+              <p className="text-xs text-muted-foreground">
+                Monitor positive, neutral, and negative mentions. Get alerts when sentiment shifts.
+              </p>
+            </div>
+            <div className="relative h-32 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+              <img
+                src="/shot-sentiment.png"
+                alt="Citation list showing sentiment indicators"
+                className="w-full h-full object-cover object-left-top"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div
+                className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-red-500/20 flex items-center justify-center"
+                style={{ display: "none" }}
+              >
+                <div className="text-center space-y-1 p-3">
+                  <div className="text-sm font-bold text-muted-foreground">
+                    Citation List Screenshot
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    /public/shot-sentiment.png
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border bg-card hover:shadow-lg transition-shadow">
-            <GitBranch className="h-10 w-10 text-blue-600 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Fan-Out Technology</h3>
-            <p className="text-sm text-muted-foreground">
-              Discover related queries and topics where your brand should appear.
-            </p>
-            <div className="mt-4 space-y-2">
-              <div className="text-xs px-2 py-1 rounded bg-muted">Best AI tools →</div>
-              <div className="text-xs px-2 py-1 rounded bg-muted ml-4">AI content detection →</div>
-              <div className="text-xs px-2 py-1 rounded bg-muted ml-4">ChatGPT alternatives →</div>
+          <div className="rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
+            <div className="p-4">
+              <GitBranch className="h-8 w-8 text-blue-600 mb-2" />
+              <h3 className="text-lg font-bold mb-1">Fan-Out Technology</h3>
+              <p className="text-xs text-muted-foreground">
+                Discover related queries and topics where your brand should appear.
+              </p>
+            </div>
+            <div className="relative h-32 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+              <img
+                src="/shot-fanout.png"
+                alt="Keyword expansion list showing related queries"
+                className="w-full h-full object-cover object-left-top"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div
+                className="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center"
+                style={{ display: "none" }}
+              >
+                <div className="text-center space-y-1 p-3">
+                  <div className="text-sm font-bold text-muted-foreground">
+                    Fan-Out List Screenshot
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    /public/shot-fanout.png
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

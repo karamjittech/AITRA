@@ -75,14 +75,40 @@ export function LandingHero() {
           </div>
         </div>
 
-        <div className="mt-20 max-w-5xl mx-auto">
-          <div className="relative rounded-xl border bg-card p-2 shadow-2xl">
-            <div className="aspect-video rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <div className="text-6xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-                  78%
+        <div className="mt-20 max-w-5xl mx-auto" style={{ perspective: "1000px" }}>
+          <div
+            className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-card p-3 shadow-2xl"
+            style={{
+              transform: "rotateX(2deg) rotateY(-2deg)",
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 via-fuchsia-600/20 to-pink-600/20 blur-3xl opacity-50" />
+            <div className="relative rounded-lg overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-950">
+              <img
+                src="/hero-dashboard.png"
+                alt="Dashboard showing AI readiness scores, citations, and analytics"
+                className="w-full h-auto"
+                style={{ display: "block" }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div
+                className="aspect-video rounded-lg bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-pink-500/20 flex items-center justify-center"
+                style={{ display: "none" }}
+              >
+                <div className="text-center space-y-4 p-8">
+                  <div className="text-4xl font-bold text-muted-foreground">
+                    Dashboard Screenshot Here
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Replace /public/hero-dashboard.png with your actual dashboard screenshot
+                  </p>
                 </div>
-                <p className="text-xl font-medium">AI Readiness Score</p>
               </div>
             </div>
           </div>

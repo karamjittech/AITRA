@@ -1,5 +1,6 @@
 import { LandingNavbar } from "@/components/landing-navbar";
 import { LandingHero } from "@/components/landing-hero";
+import { LandingHowItWorks } from "@/components/landing-how-it-works";
 import { LandingProblem } from "@/components/landing-problem";
 import { LandingFeatures } from "@/components/landing-features";
 import { LandingPricing } from "@/components/landing-pricing";
@@ -11,6 +12,7 @@ export default function LandingPage() {
       <LandingNavbar />
       <main>
         <LandingHero />
+        <LandingHowItWorks />
         <LandingProblem />
         <LandingFeatures />
         <LandingPricing />
