@@ -60,6 +60,7 @@ export async function middleware(request: NextRequest) {
 
   const publicPaths = ['/login', '/signup', '/pricing', '/auth/callback'];
   const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+  const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
 
   if (!user && !isPublicPath && request.nextUrl.pathname !== '/') {
     const redirectUrl = request.nextUrl.clone();
@@ -70,6 +71,18 @@ export async function middleware(request: NextRequest) {
 
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
     return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  if (isAdminPath && user) {
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !userData?.is_admin) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   return response;

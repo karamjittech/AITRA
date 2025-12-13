@@ -23,19 +23,38 @@ export function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { subscription, counts, isLoading } = useSubscription();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+      if (user) {
+        checkAdmin(user.id);
+      }
     });
 
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdmin(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => authSubscription.unsubscribe();
   }, []);
+
+  async function checkAdmin(userId: string) {
+    const { data } = await (supabase as any)
+      .from('users')
+      .select('is_admin')
+      .eq('id', userId)
+      .single();
+
+    setIsAdmin(data?.is_admin || false);
+  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -156,6 +175,16 @@ export function NavBar() {
                           </div>
                         </div>
                       </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={() => router.push("/admin")} className="bg-red-50 text-red-700 font-medium">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Panel
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
                   )}
