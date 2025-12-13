@@ -58,11 +58,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicPaths = ['/login', '/signup', '/pricing', '/auth/callback'];
-  const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+  const publicPaths = ['/login', '/signup', '/pricing', '/auth/callback', '/redeem', '/'];
+  const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(path));
   const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
 
-  if (!user && !isPublicPath && request.nextUrl.pathname !== '/') {
+  if (!user && !isPublicPath) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname);
