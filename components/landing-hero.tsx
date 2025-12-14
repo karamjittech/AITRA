@@ -76,68 +76,114 @@ export function LandingHero() {
         </div>
 
         <div
-          className="mt-20 max-w-5xl mx-auto [perspective:1000px] [transform-style:preserve-3d]"
-          style={{ perspective: "1000px", perspectiveOrigin: "center center" }}
+          className="mt-20 max-w-5xl mx-auto [perspective:1200px] [transform-style:preserve-3d]"
+          style={{ perspective: "1200px", perspectiveOrigin: "center center" }}
         >
           <div
-            className="relative rounded-xl border border-white/10 bg-slate-900/50 p-3 shadow-2xl transition-all duration-700 hover:scale-[1.02] [transform-style:preserve-3d]"
+            className="relative rounded-xl border border-white/10 bg-slate-900/50 p-3 shadow-2xl transition-all duration-700 [transform-style:preserve-3d]"
             style={{
-              transform: "perspective(1000px) rotateX(20deg) rotateY(-5deg) translateZ(30px)",
+              transform: "perspective(1200px) rotateX(10deg) rotateY(-2deg) translateZ(20px)",
               transformStyle: "preserve-3d",
               backfaceVisibility: "hidden",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(50px)";
+              e.currentTarget.style.transform = "perspective(1200px) rotateX(5deg) rotateY(0deg) translateZ(50px) scale(1.01)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "perspective(1000px) rotateX(20deg) rotateY(-5deg) translateZ(30px)";
+              e.currentTarget.style.transform = "perspective(1200px) rotateX(10deg) rotateY(-2deg) translateZ(20px)";
             }}
           >
-            <div className="absolute -inset-8 bg-gradient-to-r from-violet-600/40 via-fuchsia-600/40 to-pink-600/40 blur-[100px] opacity-90 animate-pulse -z-10" />
-            <div className="relative rounded-lg overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <div className="absolute -inset-4 translate-y-12 bg-gradient-to-r from-violet-600/40 via-fuchsia-600/40 to-pink-600/40 blur-[80px] opacity-90 animate-pulse -z-10" />
+            <div className="relative rounded-lg overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 min-h-[500px] aspect-video">
               <img
                 src="/hero-dashboard.png"
                 alt="Dashboard showing AI readiness scores, citations, and analytics"
-                className="w-full h-auto"
+                className="absolute inset-0 w-full h-full object-cover object-top z-10"
                 style={{ display: "block" }}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = "flex";
                 }}
               />
-              <div
-                className="h-[500px] rounded-lg bg-gradient-to-br from-violet-900/30 via-slate-800/40 to-slate-900 border-2 border-white/10 flex flex-col"
-                style={{ display: "none" }}
-              >
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 rounded-t-lg border-b border-white/5">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
+              <div className="absolute inset-0 h-full rounded-lg bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex">
+                {/* Sidebar */}
+                <div className="w-48 border-r border-white/5 bg-slate-900/50 p-4 space-y-3">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-600/20 border border-violet-500/30">
+                    <div className="w-2 h-2 rounded-full bg-violet-500" />
+                    <div className="h-3 w-20 bg-violet-500/30 rounded" />
                   </div>
-                  <div className="flex-1 mx-4 px-4 py-1 bg-slate-900/50 rounded text-xs text-slate-400 flex items-center gap-2">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <span>yourapp.com/dashboard</span>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
+                    <div className="w-2 h-2 rounded-full bg-slate-600" />
+                    <div className="h-3 w-16 bg-slate-600/30 rounded" />
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
+                    <div className="w-2 h-2 rounded-full bg-slate-600" />
+                    <div className="h-3 w-20 bg-slate-600/30 rounded" />
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
+                    <div className="w-2 h-2 rounded-full bg-slate-600" />
+                    <div className="h-3 w-14 bg-slate-600/30 rounded" />
                   </div>
                 </div>
-                <div className="flex-1 p-8 flex flex-col items-center justify-center space-y-6">
-                  <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
-                    <div className="h-24 rounded-lg bg-violet-500/20 border border-violet-500/30 animate-pulse" />
-                    <div className="h-24 rounded-lg bg-fuchsia-500/20 border border-fuchsia-500/30 animate-pulse delay-75" />
-                    <div className="h-24 rounded-lg bg-pink-500/20 border border-pink-500/30 animate-pulse delay-150" />
-                  </div>
-                  <div className="w-full max-w-2xl h-32 rounded-lg bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-pink-500/10 border border-white/10" />
-                  <div className="text-center space-y-2">
-                    <div className="text-2xl font-bold text-slate-300">
-                      AI Reputation Dashboard
+
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col">
+                  {/* Browser Address Bar */}
+                  <div className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 border-b border-white/5">
+                    <div className="flex gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                      <div className="w-3 h-3 rounded-full bg-green-500" />
                     </div>
-                    <p className="text-sm text-slate-500">
-                      Upload /public/hero-dashboard.png to see your screenshot
-                    </p>
+                    <div className="flex-1 mx-4 px-4 py-1 bg-slate-900/50 rounded text-xs text-slate-400 flex items-center gap-2">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <span>yourapp.com/dashboard</span>
+                    </div>
+                  </div>
+
+                  {/* Dashboard Content */}
+                  <div className="flex-1 p-6 space-y-6 overflow-hidden">
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="p-4 rounded-lg bg-violet-500/10 border border-violet-500/20 animate-pulse">
+                        <div className="h-2 w-12 bg-violet-500/30 rounded mb-2" />
+                        <div className="h-6 w-16 bg-violet-500/50 rounded" />
+                      </div>
+                      <div className="p-4 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 animate-pulse" style={{ animationDelay: "150ms" }}>
+                        <div className="h-2 w-12 bg-fuchsia-500/30 rounded mb-2" />
+                        <div className="h-6 w-16 bg-fuchsia-500/50 rounded" />
+                      </div>
+                      <div className="p-4 rounded-lg bg-pink-500/10 border border-pink-500/20 animate-pulse" style={{ animationDelay: "300ms" }}>
+                        <div className="h-2 w-12 bg-pink-500/30 rounded mb-2" />
+                        <div className="h-6 w-16 bg-pink-500/50 rounded" />
+                      </div>
+                      <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 animate-pulse" style={{ animationDelay: "450ms" }}>
+                        <div className="h-2 w-12 bg-blue-500/30 rounded mb-2" />
+                        <div className="h-6 w-16 bg-blue-500/50 rounded" />
+                      </div>
+                    </div>
+
+                    {/* Chart Area */}
+                    <div className="p-4 rounded-lg bg-slate-800/30 border border-white/5">
+                      <div className="h-3 w-32 bg-slate-600/30 rounded mb-4" />
+                      <div className="h-40 rounded bg-gradient-to-t from-violet-500/20 via-fuchsia-500/10 to-transparent border-l border-b border-white/5 flex items-end gap-2 p-4">
+                        <div className="w-full h-20 bg-violet-500/30 rounded-t" />
+                        <div className="w-full h-32 bg-fuchsia-500/30 rounded-t" />
+                        <div className="w-full h-24 bg-pink-500/30 rounded-t" />
+                        <div className="w-full h-36 bg-blue-500/30 rounded-t" />
+                        <div className="w-full h-28 bg-violet-500/30 rounded-t" />
+                      </div>
+                    </div>
+
+                    {/* Table/List Section */}
+                    <div className="space-y-2">
+                      <div className="h-2 w-24 bg-slate-600/30 rounded mb-3" />
+                      <div className="h-8 rounded bg-slate-800/20 border border-white/5" />
+                      <div className="h-8 rounded bg-slate-800/20 border border-white/5" />
+                      <div className="h-8 rounded bg-slate-800/20 border border-white/5" />
+                    </div>
                   </div>
                 </div>
               </div>
