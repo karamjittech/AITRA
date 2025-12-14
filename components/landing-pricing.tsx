@@ -80,10 +80,13 @@ export function LandingPricing() {
                   tier.popular
                     ? "border-violet-600 shadow-2xl scale-105"
                     : isAgency
-                    ? "border-border hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/20"
+                    ? "border-amber-500/50 shadow-2xl shadow-amber-500/30"
                     : "border-border hover:shadow-md"
                 }`}
               >
+                {isAgency && (
+                  <div className="absolute -inset-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 blur-2xl -z-10 opacity-70 animate-pulse rounded-2xl" />
+                )}
                 {tier.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <div className="px-4 py-1 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-medium">
@@ -94,13 +97,13 @@ export function LandingPricing() {
 
                 <div className="text-center mb-6">
                   {Icon && (
-                    <div className={`inline-flex p-3 rounded-xl mb-4 ${
+                    <div className={`inline-flex ${isAgency ? "p-4" : "p-3"} rounded-xl mb-4 ${
                       isAgency
-                        ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10"
+                        ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 ring-2 ring-amber-500/30"
                         : "bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10"
                     }`}>
-                      <Icon className={`h-8 w-8 ${
-                        isAgency ? "text-amber-600" : "text-violet-600"
+                      <Icon className={`${isAgency ? "h-10 w-10" : "h-8 w-8"} ${
+                        isAgency ? "text-amber-500" : "text-violet-600"
                       }`} />
                     </div>
                   )}

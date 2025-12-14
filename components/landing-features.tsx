@@ -16,7 +16,7 @@ export function LandingFeatures() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-          <div className="lg:col-span-2 lg:row-span-2 rounded-2xl border bg-card relative overflow-hidden group hover:shadow-xl transition-shadow">
+          <div className="lg:col-span-2 lg:row-span-2 rounded-2xl border bg-card relative overflow-hidden group hover:shadow-xl hover:[transform:rotateX(-1deg)] transition-all duration-300 min-h-[400px]">
             <div className="p-6">
               <div className="mb-4">
                 <PieChart className="h-10 w-10 text-violet-600" />
@@ -26,7 +26,7 @@ export function LandingFeatures() {
                 Track your brand mentions across ChatGPT, Perplexity, Claude, and Gemini. See exactly how often you are cited compared to competitors.
               </p>
             </div>
-            <div className="relative h-64 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+            <div className="relative h-64 overflow-hidden border-t bg-slate-900 min-h-[256px]">
               <img
                 src="/shot-sov.png"
                 alt="Share of Voice analytics with pie chart showing brand distribution"
@@ -39,14 +39,14 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center rounded-lg"
+                className="w-full h-full bg-gradient-to-br from-violet-900/30 to-slate-900 border border-white/5 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-2 p-4">
-                  <div className="text-lg font-bold text-muted-foreground">
-                    Pie Chart Screenshot Here
+                  <div className="text-lg font-bold text-slate-300">
+                    Share of Voice Chart
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     /public/shot-sov.png
                   </p>
                 </div>
@@ -54,7 +54,7 @@ export function LandingFeatures() {
             </div>
           </div>
 
-          <div className="rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
+          <div className="h-[280px] rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
             <div className="p-4">
               <ThumbsUp className="h-8 w-8 text-emerald-600 mb-2" />
               <h3 className="text-lg font-bold mb-1">Sentiment Analysis</h3>
@@ -62,7 +62,7 @@ export function LandingFeatures() {
                 Monitor positive, neutral, and negative mentions. Get alerts when sentiment shifts.
               </p>
             </div>
-            <div className="relative h-32 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+            <div className="relative h-32 overflow-hidden border-t bg-slate-900 min-h-[128px]">
               <img
                 src="/shot-sentiment.png"
                 alt="Citation list showing sentiment indicators"
@@ -75,14 +75,14 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-red-500/20 flex items-center justify-center rounded-lg"
+                className="w-full h-full bg-gradient-to-br from-emerald-900/30 via-slate-800/30 to-red-900/30 border border-white/5 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-1 p-3">
-                  <div className="text-sm font-bold text-muted-foreground">
-                    Citation List Screenshot
+                  <div className="text-sm font-bold text-slate-300">
+                    Sentiment Tracking
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     /public/shot-sentiment.png
                   </p>
                 </div>
@@ -90,7 +90,7 @@ export function LandingFeatures() {
             </div>
           </div>
 
-          <div className="rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
+          <div className="h-[280px] rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
             <div className="p-4">
               <GitBranch className="h-8 w-8 text-blue-600 mb-2" />
               <h3 className="text-lg font-bold mb-1">Fan-Out Technology</h3>
@@ -98,7 +98,7 @@ export function LandingFeatures() {
                 Discover related queries and topics where your brand should appear.
               </p>
             </div>
-            <div className="relative h-32 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+            <div className="relative h-32 overflow-hidden border-t bg-slate-900 min-h-[128px]">
               <img
                 src="/shot-fanout.png"
                 alt="Keyword expansion list showing related queries"
@@ -111,14 +111,14 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center rounded-lg"
+                className="w-full h-full bg-gradient-to-br from-blue-900/30 via-slate-800/30 to-cyan-900/30 border border-white/5 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-1 p-3">
-                  <div className="text-sm font-bold text-muted-foreground">
-                    Fan-Out List Screenshot
+                  <div className="text-sm font-bold text-slate-300">
+                    Query Expansion
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     /public/shot-fanout.png
                   </p>
                 </div>
@@ -126,7 +126,7 @@ export function LandingFeatures() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
+          <div className="lg:col-span-2 rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow min-h-[300px]">
             <div className="p-6">
               <Table className="h-10 w-10 text-amber-600 mb-4" />
               <h3 className="text-xl font-bold mb-2">AEO Workbench</h3>
@@ -134,7 +134,7 @@ export function LandingFeatures() {
                 Transform messy content into structured tables that AI models love to cite. Optimize for Answer Engine Optimization.
               </p>
             </div>
-            <div className="relative h-32 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+            <div className="relative h-40 overflow-hidden border-t bg-slate-900 min-h-[160px]">
               <img
                 src="/shot-aeo.png"
                 alt="AEO Workbench showing before and after text optimization"
@@ -147,14 +147,14 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center rounded-lg"
+                className="w-full h-full bg-gradient-to-br from-amber-900/30 via-slate-800/30 to-orange-900/30 border border-white/5 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-1 p-3">
-                  <div className="text-sm font-bold text-muted-foreground">
-                    AEO Workbench Screenshot
+                  <div className="text-sm font-bold text-slate-300">
+                    Content Optimizer
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     /public/shot-aeo.png
                   </p>
                 </div>

@@ -18,8 +18,8 @@ export function LandingHero() {
 
   return (
     <section className="relative pt-32 pb-20 px-4 overflow-hidden">
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:50px_50px]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-500/10 via-transparent to-transparent" />
 
       <div className="container mx-auto relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -75,21 +75,25 @@ export function LandingHero() {
           </div>
         </div>
 
-        <div className="mt-20 max-w-5xl mx-auto" style={{ perspective: "1000px" }}>
+        <div
+          className="mt-20 max-w-5xl mx-auto [perspective:1000px] [transform-style:preserve-3d]"
+          style={{ perspective: "1000px", perspectiveOrigin: "center center" }}
+        >
           <div
-            className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-card p-3 shadow-2xl transition-transform duration-500 hover:scale-[1.02]"
+            className="relative rounded-xl border border-white/10 bg-slate-900/50 p-3 shadow-2xl transition-all duration-700 hover:scale-[1.02] [transform-style:preserve-3d]"
             style={{
-              transform: "perspective(1000px) rotateX(10deg) translateY(10px)",
+              transform: "perspective(1000px) rotateX(20deg) rotateY(-5deg) translateZ(30px)",
               transformStyle: "preserve-3d",
+              backfaceVisibility: "hidden",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "perspective(1000px) rotateX(0deg) translateY(0px)";
+              e.currentTarget.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(50px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "perspective(1000px) rotateX(10deg) translateY(10px)";
+              e.currentTarget.style.transform = "perspective(1000px) rotateX(20deg) rotateY(-5deg) translateZ(30px)";
             }}
           >
-            <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/30 via-fuchsia-600/30 to-pink-600/30 blur-3xl opacity-70 shadow-[0_20px_50px_rgba(139,_92,_246,_0.7)]" />
+            <div className="absolute -inset-8 bg-gradient-to-r from-violet-600/40 via-fuchsia-600/40 to-pink-600/40 blur-[100px] opacity-90 animate-pulse -z-10" />
             <div className="relative rounded-lg overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
               <img
                 src="/hero-dashboard.png"
@@ -104,16 +108,37 @@ export function LandingHero() {
                 }}
               />
               <div
-                className="aspect-video rounded-lg bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-pink-500/20 flex items-center justify-center"
+                className="h-[500px] rounded-lg bg-gradient-to-br from-violet-900/30 via-slate-800/40 to-slate-900 border-2 border-white/10 flex flex-col"
                 style={{ display: "none" }}
               >
-                <div className="text-center space-y-4 p-8">
-                  <div className="text-4xl font-bold text-muted-foreground">
-                    Dashboard Screenshot Here
+                <div className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 rounded-t-lg border-b border-white/5">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                    <div className="w-3 h-3 rounded-full bg-green-500" />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Replace /public/hero-dashboard.png with your actual dashboard screenshot
-                  </p>
+                  <div className="flex-1 mx-4 px-4 py-1 bg-slate-900/50 rounded text-xs text-slate-400 flex items-center gap-2">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>yourapp.com/dashboard</span>
+                  </div>
+                </div>
+                <div className="flex-1 p-8 flex flex-col items-center justify-center space-y-6">
+                  <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
+                    <div className="h-24 rounded-lg bg-violet-500/20 border border-violet-500/30 animate-pulse" />
+                    <div className="h-24 rounded-lg bg-fuchsia-500/20 border border-fuchsia-500/30 animate-pulse delay-75" />
+                    <div className="h-24 rounded-lg bg-pink-500/20 border border-pink-500/30 animate-pulse delay-150" />
+                  </div>
+                  <div className="w-full max-w-2xl h-32 rounded-lg bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-pink-500/10 border border-white/10" />
+                  <div className="text-center space-y-2">
+                    <div className="text-2xl font-bold text-slate-300">
+                      AI Reputation Dashboard
+                    </div>
+                    <p className="text-sm text-slate-500">
+                      Upload /public/hero-dashboard.png to see your screenshot
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
