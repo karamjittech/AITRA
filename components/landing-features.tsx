@@ -30,7 +30,7 @@ export function LandingFeatures() {
               <img
                 src="/shot-sov.png"
                 alt="Share of Voice analytics with pie chart showing brand distribution"
-                className="w-full h-full object-cover object-left-top"
+                className="w-full h-full object-cover object-left-top rounded-lg border border-slate-200 dark:border-slate-800"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
@@ -39,7 +39,7 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center"
+                className="w-full h-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-2 p-4">
@@ -66,7 +66,7 @@ export function LandingFeatures() {
               <img
                 src="/shot-sentiment.png"
                 alt="Citation list showing sentiment indicators"
-                className="w-full h-full object-cover object-left-top"
+                className="w-full h-full object-cover object-left-top rounded-lg border border-slate-200 dark:border-slate-800"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
@@ -75,7 +75,7 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-red-500/20 flex items-center justify-center"
+                className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-red-500/20 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-1 p-3">
@@ -102,7 +102,7 @@ export function LandingFeatures() {
               <img
                 src="/shot-fanout.png"
                 alt="Keyword expansion list showing related queries"
-                className="w-full h-full object-cover object-left-top"
+                className="w-full h-full object-cover object-left-top rounded-lg border border-slate-200 dark:border-slate-800"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = "none";
@@ -111,7 +111,7 @@ export function LandingFeatures() {
                 }}
               />
               <div
-                className="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center"
+                className="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center rounded-lg"
                 style={{ display: "none" }}
               >
                 <div className="text-center space-y-1 p-3">
@@ -126,19 +126,39 @@ export function LandingFeatures() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 p-6 rounded-2xl border bg-card hover:shadow-lg transition-shadow">
-            <Table className="h-10 w-10 text-amber-600 mb-4" />
-            <h3 className="text-xl font-bold mb-2">AEO Workbench</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Transform messy content into structured tables that AI models love to cite. Optimize for Answer Engine Optimization.
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="p-2 rounded bg-muted font-medium">Feature</div>
-              <div className="p-2 rounded bg-muted font-medium">Before</div>
-              <div className="p-2 rounded bg-muted font-medium">After</div>
-              <div className="p-2 rounded bg-muted/50">Structure</div>
-              <div className="p-2 rounded bg-red-100 dark:bg-red-950/30">Poor</div>
-              <div className="p-2 rounded bg-emerald-100 dark:bg-emerald-950/30">Excellent</div>
+          <div className="lg:col-span-2 rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
+            <div className="p-6">
+              <Table className="h-10 w-10 text-amber-600 mb-4" />
+              <h3 className="text-xl font-bold mb-2">AEO Workbench</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Transform messy content into structured tables that AI models love to cite. Optimize for Answer Engine Optimization.
+              </p>
+            </div>
+            <div className="relative h-32 overflow-hidden border-t bg-slate-50 dark:bg-slate-950">
+              <img
+                src="/shot-aeo.png"
+                alt="AEO Workbench showing before and after text optimization"
+                className="w-full h-full object-cover object-left-top rounded-lg border border-slate-200 dark:border-slate-800"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div
+                className="w-full h-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center rounded-lg"
+                style={{ display: "none" }}
+              >
+                <div className="text-center space-y-1 p-3">
+                  <div className="text-sm font-bold text-muted-foreground">
+                    AEO Workbench Screenshot
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    /public/shot-aeo.png
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

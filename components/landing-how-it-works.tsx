@@ -19,7 +19,7 @@ export function LandingHowItWorks() {
           <div className="space-y-4">
             <div className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-600 to-fuchsia-600" />
-              <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
+              <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
                   src="/shot-input.png"
                   alt="Enter your website URL"
@@ -32,7 +32,7 @@ export function LandingHowItWorks() {
                   }}
                 />
                 <div
-                  className="w-full h-full bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center"
+                  className="w-full h-full bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center rounded-lg"
                   style={{ display: "none" }}
                 >
                   <div className="text-center space-y-2 p-4">
@@ -61,7 +61,7 @@ export function LandingHowItWorks() {
           <div className="space-y-4">
             <div className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-600 to-pink-600" />
-              <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
+              <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
                   src="/shot-analyze.png"
                   alt="AI analyzing your content"
@@ -74,7 +74,7 @@ export function LandingHowItWorks() {
                   }}
                 />
                 <div
-                  className="w-full h-full bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 flex items-center justify-center"
+                  className="w-full h-full bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 flex items-center justify-center rounded-lg"
                   style={{ display: "none" }}
                 >
                   <div className="text-center space-y-2 p-4">
@@ -103,7 +103,7 @@ export function LandingHowItWorks() {
           <div className="space-y-4">
             <div className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-600 to-emerald-600" />
-              <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
+              <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
                   src="/shot-recommendations.png"
                   alt="Actionable recommendations"
@@ -116,7 +116,7 @@ export function LandingHowItWorks() {
                   }}
                 />
                 <div
-                  className="w-full h-full bg-gradient-to-br from-pink-500/20 to-emerald-500/20 flex items-center justify-center"
+                  className="w-full h-full bg-gradient-to-br from-pink-500/20 to-emerald-500/20 flex items-center justify-center rounded-lg"
                   style={{ display: "none" }}
                 >
                   <div className="text-center space-y-2 p-4">

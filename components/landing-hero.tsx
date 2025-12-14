@@ -52,7 +52,7 @@ export function LandingHero() {
             <Button
               size="lg"
               onClick={handleScan}
-              className="h-12 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700"
+              className="h-12 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 transition-transform duration-200 hover:scale-105"
             >
               Scan Now
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -77,14 +77,20 @@ export function LandingHero() {
 
         <div className="mt-20 max-w-5xl mx-auto" style={{ perspective: "1000px" }}>
           <div
-            className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-card p-3 shadow-2xl"
+            className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-card p-3 shadow-2xl transition-transform duration-500 hover:scale-[1.02]"
             style={{
-              transform: "rotateX(2deg) rotateY(-2deg)",
+              transform: "perspective(1000px) rotateX(10deg) translateY(10px)",
               transformStyle: "preserve-3d",
             }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "perspective(1000px) rotateX(0deg) translateY(0px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "perspective(1000px) rotateX(10deg) translateY(10px)";
+            }}
           >
-            <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 via-fuchsia-600/20 to-pink-600/20 blur-3xl opacity-50" />
-            <div className="relative rounded-lg overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-950">
+            <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/30 via-fuchsia-600/30 to-pink-600/30 blur-3xl opacity-70 shadow-[0_20px_50px_rgba(139,_92,_246,_0.7)]" />
+            <div className="relative rounded-lg overflow-hidden shadow-inner bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
               <img
                 src="/hero-dashboard.png"
                 alt="Dashboard showing AI readiness scores, citations, and analytics"

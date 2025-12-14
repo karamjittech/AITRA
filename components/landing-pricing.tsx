@@ -72,13 +72,16 @@ export function LandingPricing() {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {tiers.map((tier) => {
             const Icon = tier.icon;
+            const isAgency = tier.name === "Agency";
             return (
               <div
                 key={tier.name}
-                className={`relative p-8 rounded-2xl border-2 bg-card ${
+                className={`relative p-8 rounded-2xl border-2 bg-card transition-all duration-300 ${
                   tier.popular
                     ? "border-violet-600 shadow-2xl scale-105"
-                    : "border-border"
+                    : isAgency
+                    ? "border-border hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/20"
+                    : "border-border hover:shadow-md"
                 }`}
               >
                 {tier.popular && (
@@ -91,8 +94,14 @@ export function LandingPricing() {
 
                 <div className="text-center mb-6">
                   {Icon && (
-                    <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 mb-4">
-                      <Icon className="h-8 w-8 text-violet-600" />
+                    <div className={`inline-flex p-3 rounded-xl mb-4 ${
+                      isAgency
+                        ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10"
+                        : "bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10"
+                    }`}>
+                      <Icon className={`h-8 w-8 ${
+                        isAgency ? "text-amber-600" : "text-violet-600"
+                      }`} />
                     </div>
                   )}
                   <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
@@ -114,12 +123,14 @@ export function LandingPricing() {
 
                 <Button
                   asChild
-                  className={`w-full ${
+                  className={`w-full transition-transform duration-200 hover:scale-105 ${
                     tier.popular
                       ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700"
+                      : isAgency
+                      ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700"
                       : ""
                   }`}
-                  variant={tier.popular ? "default" : "outline"}
+                  variant={tier.popular || isAgency ? "default" : "outline"}
                 >
                   <Link href={tier.href}>{tier.cta}</Link>
                 </Button>
