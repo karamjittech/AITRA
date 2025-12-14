@@ -17,7 +17,7 @@ export function LandingHowItWorks() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <div className="space-y-4">
-            <div className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-lg overflow-hidden">
+            <div className="relative rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-600 to-fuchsia-600" />
               <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
@@ -59,7 +59,7 @@ export function LandingHowItWorks() {
           </div>
 
           <div className="space-y-4">
-            <div className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-lg overflow-hidden">
+            <div className="relative rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-600 to-pink-600" />
               <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
@@ -93,7 +93,7 @@ export function LandingHowItWorks() {
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-fuchsia-100 dark:bg-fuchsia-950 text-fuchsia-600 font-bold">
                 2
               </div>
-              <h3 className="text-xl font-bold">AI Analyzes</h3>
+              <h3 className="text-xl font-bold">Deep AI Scan</h3>
               <p className="text-sm text-muted-foreground">
                 Our system scans citations, sentiment, and visibility across ChatGPT, Claude, Perplexity, and Gemini
               </p>
@@ -101,7 +101,7 @@ export function LandingHowItWorks() {
           </div>
 
           <div className="space-y-4">
-            <div className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-lg overflow-hidden">
+            <div className="relative rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-lg overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-600 to-emerald-600" />
               <div className="relative h-48 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
@@ -135,7 +135,7 @@ export function LandingHowItWorks() {
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 font-bold">
                 3
               </div>
-              <h3 className="text-xl font-bold">Get Recommendations</h3>
+              <h3 className="text-xl font-bold">Execute One-Click Fixes</h3>
               <p className="text-sm text-muted-foreground">
                 Receive detailed insights and one-click fixes to boost your AI search visibility
               </p>

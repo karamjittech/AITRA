@@ -93,7 +93,7 @@ export function LandingFeatures() {
           <div className="h-[280px] rounded-2xl border bg-card overflow-hidden group hover:shadow-lg transition-shadow">
             <div className="p-4">
               <GitBranch className="h-8 w-8 text-blue-600 mb-2" />
-              <h3 className="text-lg font-bold mb-1">Fan-Out Technology</h3>
+              <h3 className="text-lg font-bold mb-1">Hidden Opportunity Detector</h3>
               <p className="text-xs text-muted-foreground">
                 Discover related queries and topics where your brand should appear.
               </p>

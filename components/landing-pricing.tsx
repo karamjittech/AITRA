@@ -21,7 +21,7 @@ export function LandingPricing() {
     },
     {
       name: "Pro",
-      price: "$49",
+      price: "$39",
       description: "For serious SEO professionals",
       features: [
         "10 websites",
@@ -39,7 +39,7 @@ export function LandingPricing() {
     },
     {
       name: "Agency",
-      price: "$149",
+      price: "$119",
       description: "For agencies managing multiple clients",
       features: [
         "Unlimited websites",
@@ -50,7 +50,7 @@ export function LandingPricing() {
         "Dedicated support",
         "Custom integrations",
       ],
-      cta: "Contact Sales",
+      cta: "Start Agency Plan",
       href: "/pricing",
       popular: false,
       icon: Crown,
