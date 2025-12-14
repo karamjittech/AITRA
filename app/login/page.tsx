@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
@@ -23,6 +23,18 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const redirectTo = searchParams.get("redirectTo") || "/";
+
+  useEffect(() => {
+    const oauthError = searchParams.get("error");
+    if (oauthError) {
+      setError(oauthError);
+      toast({
+        title: "Authentication failed",
+        description: oauthError,
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

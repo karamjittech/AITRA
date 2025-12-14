@@ -7,8 +7,19 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const redirectTo = requestUrl.searchParams.get('redirectTo') || '/';
+  const error = requestUrl.searchParams.get('error');
+  const errorDescription = requestUrl.searchParams.get('error_description');
+
+  if (error) {
+    console.error('OAuth error:', error, errorDescription);
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('error', errorDescription || error);
+    return NextResponse.redirect(loginUrl);
+  }
 
   if (code) {
+    let response = NextResponse.next();
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -23,17 +34,34 @@ export async function GET(request: NextRequest) {
               value,
               ...options,
             });
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+            });
           },
           remove(name: string, options: any) {
             request.cookies.delete(name);
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+            });
           },
         },
       }
     );
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error && data.user) {
+    if (exchangeError) {
+      console.error('Code exchange error:', exchangeError);
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('error', 'Authentication failed');
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (data.user) {
       const { error: profileError } = await supabase
         .from('users')
         .upsert({
@@ -54,7 +82,9 @@ export async function GET(request: NextRequest) {
         console.error('Profile creation error:', profileError);
       }
 
-      return NextResponse.redirect(new URL(redirectTo, request.url));
+      const redirectUrl = new URL(redirectTo, request.url);
+      response = NextResponse.redirect(redirectUrl);
+      return response;
     }
   }
 
