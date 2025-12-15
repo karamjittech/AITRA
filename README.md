@@ -723,18 +723,37 @@ Individual optimization paths for each AI model:
 
 ## Deployment
 
-### Bolt Hosting (Current Setup)
+### Netlify (Production)
 
-This project is configured to run on **Bolt.new hosting** with **Supabase** for database and authentication.
+This project is configured for deployment on **Netlify** with **Supabase** for database and authentication.
 
-**No external hosting setup required.** Bolt handles all hosting infrastructure automatically.
+**Important:** You must configure environment variables in Netlify before deployment. See [NETLIFY_DEPLOYMENT_GUIDE.md](./NETLIFY_DEPLOYMENT_GUIDE.md) for detailed instructions.
 
-### Environment Variables
+### Required Environment Variables
 
-The following environment variables are configured in your `.env` file:
+The following environment variables must be configured in your deployment platform:
+
+**Supabase:**
 - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY` - Service role key (for Edge Functions only)
+- `SUPABASE_SERVICE_ROLE_KEY` - Service role key (for Edge Functions)
+
+**Paddle Payments:**
+- `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` - Paddle API token
+- `NEXT_PUBLIC_PADDLE_ENVIRONMENT` - `sandbox` or `production`
+- `NEXT_PUBLIC_PADDLE_PRO_PRICE_ID` - Pro plan price ID
+- `NEXT_PUBLIC_PADDLE_AGENCY_PRICE_ID` - Agency plan price ID
+- `PADDLE_WEBHOOK_SECRET` - Webhook secret for verification
+
+### Local Development
+
+For local development, copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Then update the values in `.env` with your actual credentials.
 
 ## Monitoring & Analytics
 
