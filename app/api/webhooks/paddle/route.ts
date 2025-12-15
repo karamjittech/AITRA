@@ -4,7 +4,11 @@ import crypto from 'crypto';
 import { PLAN_LIMITS } from '@/lib/paddle-config';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.CUSTOM_SERVICE_ROLE_KEY;
+
+if (!supabaseServiceKey) {
+  console.error('Missing SUPABASE_SERVICE_ROLE_KEY or CUSTOM_SERVICE_ROLE_KEY environment variable');
+}
 
 function verifyWebhookSignature(body: string, signature: string): boolean {
   const secret = process.env.PADDLE_WEBHOOK_SECRET;
@@ -37,6 +41,12 @@ export async function POST(request: Request) {
     }
 
     const event = JSON.parse(body);
+
+    if (!supabaseServiceKey) {
+      console.error('Supabase service key is missing');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Paddle webhook received:', event.event_type);

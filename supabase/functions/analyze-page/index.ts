@@ -116,12 +116,15 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseUrl = Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") || Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("CUSTOM_SERVICE_ROLE_KEY");
     const jinaApiKey = "jina_2f85acbc6e654ca298a8d8d720c7e07bnGWOAjlZho2vCjt5qvJry-w_yUYp";
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error("Missing environment variables");
+      console.error("Missing environment variables", {
+        hasUrl: !!supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey,
+      });
       return new Response(
         JSON.stringify({ error: "Server configuration error" }),
         {
