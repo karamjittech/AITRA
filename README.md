@@ -723,23 +723,18 @@ Individual optimization paths for each AI model:
 
 ## Deployment
 
-### Vercel (Recommended)
+### Bolt Hosting (Current Setup)
 
-```bash
-# Install Vercel CLI
-npm i -g vercel
+This project is configured to run on **Bolt.new hosting** with **Supabase** for database and authentication.
 
-# Deploy
-vercel
-
-# Set environment variables in Vercel dashboard
-```
+**No external hosting setup required.** Bolt handles all hosting infrastructure automatically.
 
 ### Environment Variables
 
-Required in production:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+The following environment variables are configured in your `.env` file:
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Service role key (for Edge Functions only)
 
 ## Monitoring & Analytics
 
