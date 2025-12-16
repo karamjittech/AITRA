@@ -6,8 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || "AIzaSyDBs1KgVq8qk0SfF3L8V-uUd_xSVo-5EBA";
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+
+if (!GEMINI_API_KEY) {
+  console.error("GEMINI_API_KEY environment variable is not set");
+}
 
 interface SuggestFanOutRequest {
   mainKeyword: string;
@@ -33,6 +37,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    if (!GEMINI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: GEMINI_API_KEY not set" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { mainKeyword }: SuggestFanOutRequest = await req.json();
 
     if (!mainKeyword || mainKeyword.trim() === "") {

@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") || Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("CUSTOM_SERVICE_ROLE_KEY");
-    const jinaApiKey = "jina_2f85acbc6e654ca298a8d8d720c7e07bnGWOAjlZho2vCjt5qvJry-w_yUYp";
+    const jinaApiKey = Deno.env.get("JINA_API_KEY");
 
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error("Missing environment variables", {
@@ -127,6 +127,17 @@ Deno.serve(async (req: Request) => {
       });
       return new Response(
         JSON.stringify({ error: "Server configuration error" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!jinaApiKey) {
+      console.error("Missing JINA_API_KEY environment variable");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: JINA_API_KEY not set" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
