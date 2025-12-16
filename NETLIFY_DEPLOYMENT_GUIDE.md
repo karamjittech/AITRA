@@ -20,7 +20,7 @@ Add the following environment variables (copy values from your local `.env` file
 
 | Variable Name | Value | Where to Find |
 |---------------|-------|---------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://wkihztdrhkgkcteqwvwn.supabase.co` | Your `.env` file line 1 |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://ifsymkwsnoapxcwsfmww.supabase.co` | Your `.env` file line 1 |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Your `.env` file line 2 |
 | `SUPABASE_SERVICE_ROLE_KEY` | Your service role key | Your `.env` file line 3 |
 | `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` | `pdl_sdbx_apikey_01kcbgb9119ksnqygd6k6gjj2c_r43PXqaCbmPMnNBH84ND7D_A9S` | Your `.env` file line 6 |
@@ -55,7 +55,7 @@ npm install -g netlify-cli
 netlify login
 
 # Set environment variables
-netlify env:set NEXT_PUBLIC_SUPABASE_URL "https://wkihztdrhkgkcteqwvwn.supabase.co"
+netlify env:set NEXT_PUBLIC_SUPABASE_URL "https://ifsymkwsnoapxcwsfmww.supabase.co"
 netlify env:set NEXT_PUBLIC_SUPABASE_ANON_KEY "your_anon_key_here"
 netlify env:set SUPABASE_SERVICE_ROLE_KEY "your_service_role_key_here"
 # ... add remaining variables

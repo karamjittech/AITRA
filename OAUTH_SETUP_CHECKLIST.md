@@ -17,7 +17,7 @@ The code changes have been implemented to fix the OAuth callback issue. Now you 
 
 ### 1. Enable Google OAuth Provider
 
-1. Go to your Supabase dashboard: https://wkihztdrhkgkcteqwvwn.supabase.co
+1. Go to your Supabase dashboard: https://ifsymkwsnoapxcwsfmww.supabase.co
 2. Navigate to **Authentication** → **Providers**
 3. Find **Google** in the provider list
 4. Toggle it to **Enabled**
@@ -31,10 +31,10 @@ The code changes have been implemented to fix the OAuth callback issue. Now you 
 5. Configure the OAuth consent screen if prompted
 6. For Application type, select **Web application**
 7. Add **Authorized JavaScript origins**:
-   - `https://wkihztdrhkgkcteqwvwn.supabase.co`
+   - `https://ifsymkwsnoapxcwsfmww.supabase.co`
    - `http://localhost:3000` (for local development)
 8. Add **Authorized redirect URIs**:
-   - `https://wkihztdrhkgkcteqwvwn.supabase.co/auth/v1/callback`
+   - `https://ifsymkwsnoapxcwsfmww.supabase.co/auth/v1/callback`
    - `http://localhost:3000/auth/callback` (for local development)
 9. Click **Create**
 10. Copy the **Client ID** and **Client Secret**

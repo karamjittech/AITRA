@@ -21,7 +21,7 @@ The following environment variables are now configured in `netlify.toml`:
 ```toml
 [build.environment]
   NODE_VERSION = "20"
-  NEXT_PUBLIC_SUPABASE_URL = "https://wkihztdrhkgkcteqwvwn.supabase.co"
+  NEXT_PUBLIC_SUPABASE_URL = "https://ifsymkwsnoapxcwsfmww.supabase.co"
   NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
