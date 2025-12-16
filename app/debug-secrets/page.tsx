@@ -10,10 +10,16 @@ export default function DebugSecretsPage() {
   const [showSecrets, setShowSecrets] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
+  const customSupabaseUrl = process.env.CUSTOM_SUPABASE_URL || 'NOT_SET';
+  const customSupabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || 'NOT_SET';
+  const customSupabaseServiceRole = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY || 'NOT_SET';
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'NOT_SET';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'NOT_SET';
   const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || 'NOT_SET';
   const supabaseDbUrl = process.env.SUPABASE_DB_URL || 'NOT_SET';
+
+  const usingCustomVariables = customSupabaseUrl !== 'NOT_SET';
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -30,11 +36,21 @@ export default function DebugSecretsPage() {
         </AlertDescription>
       </Alert>
 
+      {usingCustomVariables && (
+        <Alert className="mb-6 border-green-200 bg-green-50">
+          <AlertDescription className="ml-2 text-green-800">
+            <strong>Custom Variables Active:</strong> Your external Supabase database is being used (CUSTOM_SUPABASE_*)
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Bolt Supabase Secrets</CardTitle>
+          <CardTitle className="text-2xl">Supabase Configuration</CardTitle>
           <CardDescription>
-            Copy these values to create new secrets with NEXT_PUBLIC_ prefix in Bolt Settings &gt; Secrets
+            {usingCustomVariables
+              ? "Using CUSTOM variables (Bolt-proof) - Your external database is active"
+              : "Using standard variables - May be overwritten by Bolt.new"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -59,85 +75,134 @@ export default function DebugSecretsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="border rounded-lg p-4 space-y-2">
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-blue-900 mb-2">CUSTOM Variables (Recommended)</h3>
+              <p className="text-sm text-blue-700 mb-4">These variables prevent Bolt.new from auto-reverting your external database credentials</p>
+
+              <div className="space-y-3">
+                <div className="border rounded-lg p-3 bg-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-xs">CUSTOM_SUPABASE_URL</label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(customSupabaseUrl, 'custom-url')}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      {copied === 'custom-url' ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </div>
+                  <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
+                    {showSecrets ? customSupabaseUrl : '••••••••••••••••••••••••••••'}
+                  </div>
+                </div>
+
+                <div className="border rounded-lg p-3 bg-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-xs">CUSTOM_SUPABASE_ANON_KEY</label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(customSupabaseAnonKey, 'custom-anon')}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      {copied === 'custom-anon' ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </div>
+                  <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
+                    {showSecrets ? customSupabaseAnonKey : '••••••••••••••••••••••••••••'}
+                  </div>
+                </div>
+
+                <div className="border rounded-lg p-3 bg-white space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-xs">CUSTOM_SUPABASE_SERVICE_ROLE_KEY</label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(customSupabaseServiceRole, 'custom-service')}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      {copied === 'custom-service' ? 'Copied!' : 'Copy'}
+                    </Button>
+                  </div>
+                  <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
+                    {showSecrets ? customSupabaseServiceRole : '••••••••••••••••••••••••••••'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-2">Standard Variables (Fallback)</h3>
+              <p className="text-sm text-gray-600 mb-4">These may be overwritten by Bolt.new - Use CUSTOM_ variables above instead</p>
+
+              <div className="space-y-3">
+            <div className="border rounded-lg p-3 bg-white space-y-2">
               <div className="flex items-center justify-between">
-                <label className="font-semibold text-sm">NEXT_PUBLIC_SUPABASE_URL</label>
+                <label className="font-semibold text-xs">NEXT_PUBLIC_SUPABASE_URL</label>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => copyToClipboard(supabaseUrl, 'url')}
                 >
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="h-3 w-3 mr-1" />
                   {copied === 'url' ? 'Copied!' : 'Copy'}
                 </Button>
               </div>
-              <div className="bg-gray-100 p-3 rounded font-mono text-sm break-all">
+              <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
                 {showSecrets ? supabaseUrl : '••••••••••••••••••••••••••••'}
               </div>
             </div>
 
-            <div className="border rounded-lg p-4 space-y-2">
+            <div className="border rounded-lg p-3 bg-white space-y-2">
               <div className="flex items-center justify-between">
-                <label className="font-semibold text-sm">NEXT_PUBLIC_SUPABASE_ANON_KEY</label>
+                <label className="font-semibold text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</label>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => copyToClipboard(supabaseAnonKey, 'anon')}
                 >
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="h-3 w-3 mr-1" />
                   {copied === 'anon' ? 'Copied!' : 'Copy'}
                 </Button>
               </div>
-              <div className="bg-gray-100 p-3 rounded font-mono text-xs break-all">
+              <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
                 {showSecrets ? supabaseAnonKey : '••••••••••••••••••••••••••••'}
               </div>
             </div>
 
-            <div className="border rounded-lg p-4 space-y-2">
+            <div className="border rounded-lg p-3 bg-white space-y-2">
               <div className="flex items-center justify-between">
-                <label className="font-semibold text-sm">SUPABASE_SERVICE_ROLE_KEY (Optional)</label>
+                <label className="font-semibold text-xs">SUPABASE_SERVICE_ROLE_KEY</label>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => copyToClipboard(supabaseServiceRole, 'service')}
                 >
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="h-3 w-3 mr-1" />
                   {copied === 'service' ? 'Copied!' : 'Copy'}
                 </Button>
               </div>
-              <div className="bg-gray-100 p-3 rounded font-mono text-xs break-all">
+              <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
                 {showSecrets ? supabaseServiceRole : '••••••••••••••••••••••••••••'}
               </div>
             </div>
-
-            <div className="border rounded-lg p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="font-semibold text-sm">SUPABASE_DB_URL (Optional)</label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(supabaseDbUrl, 'db')}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  {copied === 'db' ? 'Copied!' : 'Copy'}
-                </Button>
-              </div>
-              <div className="bg-gray-100 p-3 rounded font-mono text-xs break-all">
-                {showSecrets ? supabaseDbUrl : '••••••••••••••••••••••••••••'}
               </div>
             </div>
           </div>
 
-          <Alert className="mt-6">
-            <AlertDescription>
-              <strong>Next Steps:</strong>
+          <Alert className="mt-6 border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-900">
+              <strong>Next Steps (Recommended):</strong>
               <ol className="list-decimal ml-4 mt-2 space-y-1 text-sm">
                 <li>Click "Show Secrets" above to reveal the values</li>
-                <li>Copy NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+                <li>Copy the three CUSTOM_SUPABASE_* values from the blue section</li>
                 <li>Go to Bolt Settings &gt; Secrets &gt; Create Secret</li>
-                <li>Create NEXT_PUBLIC_SUPABASE_URL with the URL value</li>
-                <li>Create NEXT_PUBLIC_SUPABASE_ANON_KEY with the anon key value</li>
-                <li>Delete this debug page after copying!</li>
+                <li>Create CUSTOM_SUPABASE_URL with your external database URL</li>
+                <li>Create CUSTOM_SUPABASE_ANON_KEY with your anon key</li>
+                <li>Create CUSTOM_SUPABASE_SERVICE_ROLE_KEY with your service role key</li>
+                <li>These custom variables won't be overwritten by Bolt.new!</li>
               </ol>
             </AlertDescription>
           </Alert>

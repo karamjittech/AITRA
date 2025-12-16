@@ -3,11 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { PLAN_LIMITS } from '@/lib/paddle-config';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.CUSTOM_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseServiceKey) {
-  console.error('Missing SUPABASE_SERVICE_ROLE_KEY or CUSTOM_SERVICE_ROLE_KEY environment variable');
+  console.error('Missing CUSTOM_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable');
 }
 
 function verifyWebhookSignature(body: string, signature: string): boolean {
