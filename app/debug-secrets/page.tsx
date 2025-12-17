@@ -10,16 +10,10 @@ export default function DebugSecretsPage() {
   const [showSecrets, setShowSecrets] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const customSupabaseUrl = process.env.CUSTOM_SUPABASE_URL || 'NOT_SET';
-  const customSupabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || 'NOT_SET';
-  const customSupabaseServiceRole = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY || 'NOT_SET';
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'NOT_SET';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'NOT_SET';
-  const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || 'NOT_SET';
-  const supabaseDbUrl = process.env.SUPABASE_DB_URL || 'NOT_SET';
 
-  const usingCustomVariables = customSupabaseUrl !== 'NOT_SET';
+  const hasValidConfig = supabaseUrl !== 'NOT_SET' && supabaseAnonKey !== 'NOT_SET';
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -36,10 +30,16 @@ export default function DebugSecretsPage() {
         </AlertDescription>
       </Alert>
 
-      {usingCustomVariables && (
+      {hasValidConfig ? (
         <Alert className="mb-6 border-green-200 bg-green-50">
           <AlertDescription className="ml-2 text-green-800">
-            <strong>Custom Variables Active:</strong> Your external Supabase database is being used (CUSTOM_SUPABASE_*)
+            <strong>Configuration Found:</strong> Supabase environment variables are loaded correctly.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert className="mb-6 border-red-200 bg-red-50">
+          <AlertDescription className="ml-2 text-red-800">
+            <strong>Configuration Missing:</strong> Supabase environment variables are NOT loaded. Check your .env file and Bolt secrets.
           </AlertDescription>
         </Alert>
       )}
@@ -48,9 +48,7 @@ export default function DebugSecretsPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Supabase Configuration</CardTitle>
           <CardDescription>
-            {usingCustomVariables
-              ? "Using CUSTOM variables (Bolt-proof) - Your external database is active"
-              : "Using standard variables - May be overwritten by Bolt.new"}
+            Check if your Supabase environment variables are properly loaded
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -76,66 +74,8 @@ export default function DebugSecretsPage() {
 
           <div className="space-y-4">
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h3 className="font-semibold text-blue-900 mb-2">CUSTOM Variables (Recommended)</h3>
-              <p className="text-sm text-blue-700 mb-4">These variables prevent Bolt.new from auto-reverting your external database credentials</p>
-
-              <div className="space-y-3">
-                <div className="border rounded-lg p-3 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-xs">CUSTOM_SUPABASE_URL</label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(customSupabaseUrl, 'custom-url')}
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      {copied === 'custom-url' ? 'Copied!' : 'Copy'}
-                    </Button>
-                  </div>
-                  <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
-                    {showSecrets ? customSupabaseUrl : '••••••••••••••••••••••••••••'}
-                  </div>
-                </div>
-
-                <div className="border rounded-lg p-3 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-xs">CUSTOM_SUPABASE_ANON_KEY</label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(customSupabaseAnonKey, 'custom-anon')}
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      {copied === 'custom-anon' ? 'Copied!' : 'Copy'}
-                    </Button>
-                  </div>
-                  <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
-                    {showSecrets ? customSupabaseAnonKey : '••••••••••••••••••••••••••••'}
-                  </div>
-                </div>
-
-                <div className="border rounded-lg p-3 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-xs">CUSTOM_SUPABASE_SERVICE_ROLE_KEY</label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(customSupabaseServiceRole, 'custom-service')}
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      {copied === 'custom-service' ? 'Copied!' : 'Copy'}
-                    </Button>
-                  </div>
-                  <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
-                    {showSecrets ? customSupabaseServiceRole : '••••••••••••••••••••••••••••'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-gray-900 mb-2">Standard Variables (Fallback)</h3>
-              <p className="text-sm text-gray-600 mb-4">These may be overwritten by Bolt.new - Use CUSTOM_ variables above instead</p>
+              <h3 className="font-semibold text-blue-900 mb-2">Browser-Available Variables</h3>
+              <p className="text-sm text-blue-700 mb-4">These NEXT_PUBLIC_ variables are available in the browser</p>
 
               <div className="space-y-3">
             <div className="border rounded-lg p-3 bg-white space-y-2">
@@ -172,37 +112,18 @@ export default function DebugSecretsPage() {
               </div>
             </div>
 
-            <div className="border rounded-lg p-3 bg-white space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="font-semibold text-xs">SUPABASE_SERVICE_ROLE_KEY</label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(supabaseServiceRole, 'service')}
-                >
-                  <Copy className="h-3 w-3 mr-1" />
-                  {copied === 'service' ? 'Copied!' : 'Copy'}
-                </Button>
-              </div>
-              <div className="bg-gray-100 p-2 rounded font-mono text-xs break-all">
-                {showSecrets ? supabaseServiceRole : '••••••••••••••••••••••••••••'}
-              </div>
-            </div>
               </div>
             </div>
           </div>
 
           <Alert className="mt-6 border-blue-200 bg-blue-50">
             <AlertDescription className="text-blue-900">
-              <strong>Next Steps (Recommended):</strong>
+              <strong>How to Fix Missing Variables:</strong>
               <ol className="list-decimal ml-4 mt-2 space-y-1 text-sm">
-                <li>Click "Show Secrets" above to reveal the values</li>
-                <li>Copy the three CUSTOM_SUPABASE_* values from the blue section</li>
-                <li>Go to Bolt Settings &gt; Secrets &gt; Create Secret</li>
-                <li>Create CUSTOM_SUPABASE_URL with your external database URL</li>
-                <li>Create CUSTOM_SUPABASE_ANON_KEY with your anon key</li>
-                <li>Create CUSTOM_SUPABASE_SERVICE_ROLE_KEY with your service role key</li>
-                <li>These custom variables won't be overwritten by Bolt.new!</li>
+                <li>Check that your .env file contains NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+                <li>In Bolt, go to Settings &gt; Secrets</li>
+                <li>Add both variables as secrets</li>
+                <li>Rebuild the project (stop and start the dev server)</li>
               </ol>
             </AlertDescription>
           </Alert>
