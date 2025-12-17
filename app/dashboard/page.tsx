@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { URLInput } from "@/components/url-input";
 import { LoadingState } from "@/components/loading-state";
 import { ResultsDisplay } from "@/components/results-display";
@@ -12,6 +13,9 @@ import { AlertCircle, BarChart3 } from "lucide-react";
 type ViewState = "input" | "loading" | "results" | "error";
 
 export default function Dashboard() {
+  const searchParams = useSearchParams();
+  const hasAutoTriggered = useRef(false);
+
   const [viewState, setViewState] = useState<ViewState>("input");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string>("");
@@ -70,6 +74,25 @@ export default function Dashboard() {
     setError("");
     setAnalyzedUrl("");
   };
+
+  useEffect(() => {
+    const urlParam = searchParams.get("url");
+
+    if (urlParam && !hasAutoTriggered.current) {
+      hasAutoTriggered.current = true;
+
+      try {
+        const decodedUrl = decodeURIComponent(urlParam);
+        const urlObj = new URL(decodedUrl);
+
+        if (urlObj.protocol === "http:" || urlObj.protocol === "https:") {
+          handleAnalyze(decodedUrl);
+        }
+      } catch (err) {
+        console.error("Invalid URL parameter:", err);
+      }
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
