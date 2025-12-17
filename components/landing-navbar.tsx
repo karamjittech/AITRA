@@ -47,7 +47,7 @@ export function LandingNavbar() {
             </Button>
 
             <Button asChild className="hidden md:flex bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700">
-              <Link href="/dashboard">Get Started</Link>
+              <Link href="/signup">Get Started</Link>
             </Button>
 
             <Button
@@ -87,7 +87,7 @@ export function LandingNavbar() {
               Login
             </Link>
             <Button asChild className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
-              <Link href="/dashboard">Get Started</Link>
+              <Link href="/signup">Get Started</Link>
             </Button>
           </div>
         </div>

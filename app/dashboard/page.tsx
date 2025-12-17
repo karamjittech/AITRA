@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { URLInput } from "@/components/url-input";
 import { LoadingState } from "@/components/loading-state";
@@ -12,7 +12,7 @@ import { AlertCircle, BarChart3 } from "lucide-react";
 
 type ViewState = "input" | "loading" | "results" | "error";
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const hasAutoTriggered = useRef(false);
 
@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string>("");
   const [analyzedUrl, setAnalyzedUrl] = useState<string>("");
 
-  const handleAnalyze = async (url: string) => {
+  const handleAnalyze = useCallback(async (url: string) => {
     setViewState("loading");
     setError("");
     setAnalyzedUrl(url);
@@ -66,7 +66,7 @@ export default function Dashboard() {
       );
       setViewState("error");
     }
-  };
+  }, []);
 
   const handleReset = () => {
     setViewState("input");
@@ -92,7 +92,7 @@ export default function Dashboard() {
         console.error("Invalid URL parameter:", err);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, handleAnalyze]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -288,5 +288,24 @@ export default function Dashboard() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

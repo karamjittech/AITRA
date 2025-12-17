@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicPaths = ['/login', '/signup', '/pricing', '/auth/callback', '/redeem', '/'];
+  const publicPaths = ['/login', '/signup', '/pricing', '/auth/callback', '/redeem', '/dashboard', '/'];
   const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(path));
   const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
 
