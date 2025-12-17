@@ -35,8 +35,8 @@ An AI-powered SEO optimization tool that:
 | Layer | Technology | Why This Choice | Cost |
 |-------|-----------|-----------------|------|
 | **Frontend** | Bolt.new + Next.js | AI-assisted development, React ecosystem | Free |
-| **Database** | Bolt Database
-| **Auth** | Bolt Database Auth | 10x better free tier than Clerk (50k vs 5k MAU) | Free |
+| **Database** | Supabase Database
+| **Auth** | Database Auth | 10x better free tier than Clerk (50k vs 5k MAU) | Free |
 | **Serverless Functions** | Supabase Edge Functions (TypeScript) | Built-in, no Docker needed, global distribution | Free tier |
 | **Web Scraping** | Jina.ai Reader API | Free 10M tokens, pay-per-page, you control scope | Free + PAYG |
 | **AI Processing** | Gemini models/gemini-flash-latest | Sentiment analysis + schema generation |  |
