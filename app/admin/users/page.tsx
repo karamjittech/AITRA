@@ -33,6 +33,8 @@ import { supabase } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+export const dynamic = 'force-dynamic';
+
 interface UserData {
   id: string;
   email: string;

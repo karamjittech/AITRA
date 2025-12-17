@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/utils/supabase/client";
 
+export const dynamic = 'force-dynamic';
+
 export default function AdminLayout({
   children,
 }: {

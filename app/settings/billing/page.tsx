@@ -13,6 +13,8 @@ import { CreditCard, Calendar, CheckCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/utils/supabase/client";
 
+export const dynamic = 'force-dynamic';
+
 export default function BillingPage() {
   const { subscription, isLoading } = useSubscription();
   const { openCheckout, openManageSubscription, isReady: paddleReady } = usePaddle();

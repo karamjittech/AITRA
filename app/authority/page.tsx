@@ -14,6 +14,8 @@ import { Shield, AlertCircle, CheckCircle2, Crown, Target } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+export const dynamic = 'force-dynamic';
+
 interface BrandIdentity {
   id: string;
   organization_name: string;

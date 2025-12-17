@@ -16,6 +16,8 @@ import { SOVExportButton } from "@/components/sov-export-button";
 import { BarChart3, TrendingUp, Target, Clock, AlertCircle, Shield } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 
+export const dynamic = 'force-dynamic';
+
 interface SOVData {
   yourBrand: {
     name: string;

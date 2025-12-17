@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { AnalysisResult, AnalysisError } from "@/lib/types";
 import { AlertCircle, BarChart3 } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 type ViewState = "input" | "loading" | "results" | "error";
 
 function DashboardContent() {

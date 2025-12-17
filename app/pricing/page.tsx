@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Zap, Crown, Star, ArrowRight } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 
+export const dynamic = 'force-dynamic';
+
 const PLANS = [
   {
     id: "free",

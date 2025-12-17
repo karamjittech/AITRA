@@ -11,6 +11,8 @@ import { CheckCircle2, Ticket, Sparkles, Zap, Crown } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+export const dynamic = 'force-dynamic';
+
 export default function RedeemPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);

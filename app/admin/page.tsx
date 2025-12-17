@@ -7,6 +7,8 @@ import { Users, Ticket, TrendingUp, DollarSign, CheckCircle, Clock } from "lucid
 import { supabase } from "@/utils/supabase/client";
 import { format } from "date-fns";
 
+export const dynamic = 'force-dynamic';
+
 interface DashboardStats {
   totalUsers: number;
   usersToday: number;

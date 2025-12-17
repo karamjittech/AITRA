@@ -9,6 +9,8 @@ import { CitationFixModal } from "@/components/citation-fix-modal";
 import { AlertCircle, Shield, TrendingUp, Link2 } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 
+export const dynamic = 'force-dynamic';
+
 type FilterType = 'all' | 'requires_action' | 'positive' | 'negative' | 'broken_links';
 
 interface Citation {

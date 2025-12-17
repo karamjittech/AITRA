@@ -14,6 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle, Loader2, Lock, Mail, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+export const dynamic = 'force-dynamic';
+
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

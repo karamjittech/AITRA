@@ -10,6 +10,8 @@ import { Plus, TrendingUp, Search, Trash2, ChevronDown, ChevronRight } from "luc
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/utils/supabase/client";
 
+export const dynamic = 'force-dynamic';
+
 interface ChildKeyword {
   id: string;
   keyword: string;
