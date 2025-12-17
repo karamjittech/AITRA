@@ -40,7 +40,7 @@ export default function AdminLayout({
         .from('users')
         .select('is_admin')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!userData?.is_admin) {
         router.push('/');

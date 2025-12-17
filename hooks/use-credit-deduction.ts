@@ -84,7 +84,7 @@ export function useCreditDeduction() {
         .from("users")
         .select("credits_total, credits_used")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) return false;
 

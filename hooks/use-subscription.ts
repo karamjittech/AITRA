@@ -46,7 +46,7 @@ export function useSubscription() {
         .from("users")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (userError) throw userError;
 

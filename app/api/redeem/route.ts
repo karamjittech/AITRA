@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       .from('redemption_codes')
       .select('*')
       .eq('code', normalizedCode)
-      .single();
+      .maybeSingle();
 
     if (codeError || !codeData) {
       return NextResponse.json(
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       .from('users')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (userError || !userData) {
       return NextResponse.json(

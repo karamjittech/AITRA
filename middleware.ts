@@ -81,7 +81,7 @@ export async function middleware(request: NextRequest) {
       .from('users')
       .select('is_admin')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (error || !userData?.is_admin) {
       return NextResponse.redirect(new URL('/', request.url));
