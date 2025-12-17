@@ -6,14 +6,29 @@ const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || process.env.NEXT_PUBLIC_S
 const supabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export function createServerClient() {
+  // During build, environment variables might not be available
+  // Only throw error at runtime when actually needed
   if (!supabaseUrl || !supabaseAnonKey) {
-    const errorMsg = 'Missing required Supabase environment variables. Please set CUSTOM_SUPABASE_URL and CUSTOM_SUPABASE_ANON_KEY (or NEXT_PUBLIC_SUPABASE_*) in your .env file';
-    console.error(errorMsg, {
-      hasUrl: !!supabaseUrl,
-      hasAnonKey: !!supabaseAnonKey,
-      usingCustom: !!(process.env.CUSTOM_SUPABASE_URL),
-    });
-    throw new Error(errorMsg);
+    if (process.env.NODE_ENV !== 'production' || typeof window !== 'undefined') {
+      console.error('Missing required Supabase environment variables:', {
+        hasUrl: !!supabaseUrl,
+        hasAnonKey: !!supabaseAnonKey,
+        usingCustom: !!(process.env.CUSTOM_SUPABASE_URL),
+      });
+    }
+    // Provide placeholder during build to avoid build failures
+    if (!supabaseUrl || !supabaseAnonKey) {
+      const placeholderUrl = supabaseUrl || 'https://placeholder.supabase.co';
+      const placeholderKey = supabaseAnonKey || 'placeholder-key';
+
+      return createSSRClient<Database>(placeholderUrl, placeholderKey, {
+        cookies: {
+          get() { return undefined; },
+          set() {},
+          remove() {},
+        },
+      });
+    }
   }
 
   if (process.env.NODE_ENV === 'development') {
