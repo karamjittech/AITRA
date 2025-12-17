@@ -6,10 +6,6 @@ import { PLAN_LIMITS } from '@/lib/paddle-config';
 const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.CUSTOM_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseServiceKey) {
-  console.error('Missing CUSTOM_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable');
-}
-
 function verifyWebhookSignature(body: string, signature: string): boolean {
   const secret = process.env.PADDLE_WEBHOOK_SECRET;
   if (!secret) {
