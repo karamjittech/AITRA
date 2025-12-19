@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/utils/supabase/client";
+import { getEdgeFunctionUrl } from "@/lib/config";
 
 interface EEATScoreGaugeProps {
   score: number;
@@ -97,7 +98,7 @@ export function EEATScoreGauge({
 
     setAnalyzing(true);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/analyze-eeat`;
+      const apiUrl = getEdgeFunctionUrl('analyze-eeat');
       const { data: userData } = await supabase.auth.getUser();
 
       if (!userData.user) {

@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Check, Info, ChevronLeft, ChevronRight, Sparkles, Table as TableIcon, Loader2 } from "lucide-react";
 import { PageAnalysis } from "@/lib/types";
+import { getEdgeFunctionUrl, getSupabaseHeaders } from "@/lib/config";
 
 interface TableConversionModalProps {
   open: boolean;
@@ -44,17 +45,11 @@ export function TableConversionModal({
     setGeneratedTable(null);
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-fix`,
+        getEdgeFunctionUrl('generate-fix'),
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseAnonKey}`,
-          },
+          headers: getSupabaseHeaders(),
           body: JSON.stringify({
             pageId: pageId,
             fixType: "paragraph-to-table",

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/utils/supabase/client";
+import { getEdgeFunctionUrl } from "@/lib/config";
 
 interface EntitySchemaGeneratorProps {
   brandIdentity: any | null;
@@ -45,7 +46,7 @@ export function EntitySchemaGenerator({ brandIdentity }: EntitySchemaGeneratorPr
 
     setGenerating(true);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-fix`;
+      const apiUrl = getEdgeFunctionUrl('generate-fix');
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 

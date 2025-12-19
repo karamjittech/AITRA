@@ -25,6 +25,7 @@ import { calculateBotPenalty } from "@/lib/bot-verification";
 import { CheckCircle2, XCircle, AlertCircle, FileText, Hash, Heading1, Heading2, List, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/utils/supabase/client";
+import { getEdgeFunctionUrl, getSupabaseHeaders } from "@/lib/config";
 
 interface ResultsDisplayProps {
   analysis: PageAnalysis;
@@ -116,17 +117,11 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
     setLoadingFix(fixType);
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-fix`,
+        getEdgeFunctionUrl('generate-fix'),
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseAnonKey}`,
-          },
+          headers: getSupabaseHeaders(),
           body: JSON.stringify({
             pageId: pageId || "00000000-0000-0000-0000-000000000001",
             fixType: fixType,

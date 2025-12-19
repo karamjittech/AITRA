@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
+import { getEdgeFunctionUrl, getSupabaseHeaders } from "@/lib/config";
 
 interface KeywordSuggestion {
   query: string;
@@ -42,17 +43,11 @@ export function AddKeywordModal({ isOpen, onClose, onSuccess }: AddKeywordModalP
     setError("");
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/suggest-fan-out`,
+        getEdgeFunctionUrl('suggest-fan-out'),
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseAnonKey}`,
-          },
+          headers: getSupabaseHeaders(),
           body: JSON.stringify({
             mainKeyword: mainKeyword.trim(),
           }),
