@@ -22,8 +22,20 @@ export const config = {
   },
 } as const;
 
-// Helper function to get Supabase Edge Function URL
+// Helper function to get Edge Function URL
+// Uses Next.js API routes instead of Supabase Edge Functions for better compatibility
 export function getEdgeFunctionUrl(functionName: string): string {
+  // Check if we're in browser or server
+  if (typeof window !== 'undefined') {
+    // Browser: use current origin
+    return `${window.location.origin}/api/${functionName}`;
+  }
+  // Server: try to get base URL from env, fallback to Supabase edge function
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL;
+  if (baseUrl) {
+    return `${baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`}/api/${functionName}`;
+  }
+  // Fallback to Supabase edge function (for backward compatibility)
   return `${config.supabase.url}/functions/v1/${functionName}`;
 }
 

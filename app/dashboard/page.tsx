@@ -56,11 +56,23 @@ function DashboardContent() {
       }
     } catch (err) {
       console.error("Analysis error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An unexpected error occurred. Please try again."
-      );
+
+      // Provide helpful error messages based on the error type
+      let errorMessage = "An unexpected error occurred. Please try again.";
+
+      if (err instanceof Error) {
+        if (err.message.includes('Failed to fetch')) {
+          errorMessage = "Unable to connect to the analysis service. Please check your internet connection and try again.";
+        } else if (err.message.includes('timeout')) {
+          errorMessage = "The analysis is taking longer than expected. Please try again with a smaller page.";
+        } else if (err.message.includes('JINA_API_KEY')) {
+          errorMessage = "Server configuration error. Please contact support.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
       setViewState("error");
     }
   }, []);
