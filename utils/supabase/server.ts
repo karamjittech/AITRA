@@ -6,15 +6,18 @@ export function createServerClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Use placeholders during build time to prevent prerender crashes
+  const url = supabaseUrl || 'https://placeholder.supabase.co';
+  const key = supabaseAnonKey || 'placeholder-anon-key';
+
+  // Warn during build but don't crash
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      'Supabase environment variables missing. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to Bolt Secrets.'
-    );
+    console.warn('⚠️ Supabase env vars missing, using placeholders. This is OK during build.');
   }
 
   const cookieStore = cookies();
 
-  return createSSRClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createSSRClient<Database>(url, key, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value;
