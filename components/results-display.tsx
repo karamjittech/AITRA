@@ -173,9 +173,9 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="text-center space-y-3">
-        <h2 className="text-3xl font-bold text-gray-900">Analysis Complete</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Analysis Complete</h2>
         <p className="text-muted-foreground text-base">
-          Results for: <span className="font-semibold text-gray-900">{analyzedUrl}</span>
+          Results for: <span className="font-semibold text-gray-900 dark:text-gray-100">{analyzedUrl}</span>
         </p>
       </div>
 

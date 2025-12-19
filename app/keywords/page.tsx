@@ -199,8 +199,8 @@ export default function KeywordsPage() {
           </div>
 
           {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800">
+              <AlertDescription className="text-red-800 dark:text-red-200">{error}</AlertDescription>
             </Alert>
           )}
 
@@ -217,8 +217,8 @@ export default function KeywordsPage() {
             <Card>
               <CardContent className="py-16 text-center space-y-4">
                 <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-blue-50 rounded-full">
-                    <TrendingUp className="h-12 w-12 text-blue-600" />
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-full">
+                    <TrendingUp className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
                 <h3 className="text-2xl font-semibold">No Keywords Yet</h3>
@@ -244,7 +244,7 @@ export default function KeywordsPage() {
 
                 return (
                   <Card key={group.id} className="overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-white">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-white dark:from-blue-950/30 dark:to-slate-800">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
@@ -268,7 +268,7 @@ export default function KeywordsPage() {
                                 </Badge>
                               </CardTitle>
                               <CardDescription className="mt-1">
-                                Main keyword: <span className="font-medium text-gray-900">{group.keyword}</span>
+                                Main keyword: <span className="font-medium text-gray-900 dark:text-gray-100">{group.keyword}</span>
                               </CardDescription>
                             </div>
                           </div>

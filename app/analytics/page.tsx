@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     dateRange === range
                       ? "bg-blue-600 text-white"
-                      : "bg-white border hover:bg-gray-50"
+                      : "bg-white dark:bg-slate-800 border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100"
                   }`}
                 >
                   Last {range}
@@ -216,13 +216,13 @@ export default function AnalyticsPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card className={criticalIssues > 0 ? "border-red-300 bg-red-50" : ""}>
+            <Card className={criticalIssues > 0 ? "border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30" : ""}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
-                <AlertCircle className={`h-4 w-4 ${criticalIssues > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
+                <AlertCircle className={`h-4 w-4 ${criticalIssues > 0 ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'}`} />
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${criticalIssues > 0 ? 'text-red-600' : ''}`}>
+                <div className={`text-2xl font-bold ${criticalIssues > 0 ? 'text-red-600 dark:text-red-400' : ''}`}>
                   {criticalIssues}
                 </div>
                 <p className="text-xs text-muted-foreground mb-2">
