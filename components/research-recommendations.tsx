@@ -381,13 +381,13 @@ export function ResearchRecommendations({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "border-l-4 border-l-red-500 border border-gray-200 bg-white hover:shadow-md";
+        return "border-l-4 border-l-red-500 border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800/50 hover:shadow-md";
       case "high":
-        return "border-l-4 border-l-orange-500 border border-gray-200 bg-white hover:shadow-md";
+        return "border-l-4 border-l-orange-500 border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800/50 hover:shadow-md";
       case "medium":
-        return "border-l-4 border-l-yellow-500 border border-gray-200 bg-white hover:shadow-md";
+        return "border-l-4 border-l-yellow-500 border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800/50 hover:shadow-md";
       default:
-        return "border-l-4 border-l-blue-500 border border-gray-200 bg-white hover:shadow-md";
+        return "border-l-4 border-l-blue-500 border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800/50 hover:shadow-md";
     }
   };
 
@@ -445,9 +445,9 @@ export function ResearchRecommendations({
                     {getPriorityIcon(rec.priority)}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-gray-900">{rec.title}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{rec.title}</h3>
                         <ChevronDown
-                          className={`h-5 w-5 text-gray-500 transition-transform shrink-0 ${
+                          className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform shrink-0 ${
                             expandedIds.has(rec.id) ? "transform rotate-180" : ""
                           }`}
                         />
@@ -460,7 +460,7 @@ export function ResearchRecommendations({
                           <TrendingUp className="h-3 w-3" />
                           {rec.impact}
                         </Badge>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           {rec.currentStatus}
                         </span>
                       </div>
@@ -469,27 +469,27 @@ export function ResearchRecommendations({
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
-                  <div className="px-4 pb-4 space-y-4 border-t border-gray-200 pt-4">
+                  <div className="px-4 pb-4 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Target Status</h4>
-                      <p className="text-sm text-gray-700">{rec.targetStatus}</p>
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Target Status</h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{rec.targetStatus}</p>
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         Research Backing
                       </h4>
                       <div className="space-y-2">
                         {rec.researchBacking.map((research, idx) => (
                           <div
                             key={idx}
-                            className="bg-white rounded p-3 border border-gray-200"
+                            className="bg-white dark:bg-slate-800/50 rounded p-3 border border-gray-200 dark:border-gray-700"
                           >
-                            <p className="text-sm text-gray-900 font-medium">
+                            <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                               {research.finding}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 Source: {research.source}
                               </span>
                               {research.stat && (
@@ -504,13 +504,13 @@ export function ResearchRecommendations({
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         Action Steps
                       </h4>
                       <ol className="space-y-2">
                         {rec.actionSteps.map((step, idx) => (
-                          <li key={idx} className="flex gap-2 text-sm text-gray-700">
-                            <span className="font-semibold text-gray-900 shrink-0">
+                          <li key={idx} className="flex gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100 shrink-0">
                               {idx + 1}.
                             </span>
                             <span>{step}</span>
@@ -520,15 +520,15 @@ export function ResearchRecommendations({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="bg-white rounded p-3 border border-gray-200">
-                        <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                      <div className="bg-white dark:bg-slate-800/50 rounded p-3 border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                           Time Estimate
                         </h4>
-                        <p className="text-sm text-gray-900">{rec.timeEstimate}</p>
+                        <p className="text-sm text-gray-900 dark:text-gray-100">{rec.timeEstimate}</p>
                       </div>
 
-                      <div className="bg-white rounded p-3 border border-gray-200">
-                        <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                      <div className="bg-white dark:bg-slate-800/50 rounded p-3 border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                           Platforms Affected
                         </h4>
                         <div className="flex flex-wrap gap-1">
@@ -588,8 +588,8 @@ export function ResearchRecommendations({
         )}
 
         {sortedRecommendations.length > 0 && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-900 font-medium">
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
               Estimated total improvement: +
               {sortedRecommendations
                 .reduce(
@@ -598,7 +598,7 @@ export function ResearchRecommendations({
                 )}{" "}
               points
             </p>
-            <p className="text-xs text-blue-700 mt-1">
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
               Completing all recommendations could improve your score from{" "}
               {scores.overallScore.toFixed(1)} to{" "}
               {Math.min(

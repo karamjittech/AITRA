@@ -123,21 +123,21 @@ export function CompetitiveGapAnalysis({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-white">
+            <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-slate-800">
               <p className="text-sm text-muted-foreground mb-1">Your Page</p>
-              <p className="text-2xl font-bold text-blue-600">{userScores.overallScore.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{userScores.overallScore.toFixed(1)}</p>
               <p className="text-xs text-muted-foreground mt-1">{analyzedUrl}</p>
             </div>
-            <div className="p-4 rounded-lg border bg-gradient-to-br from-orange-50 to-white">
+            <div className="p-4 rounded-lg border bg-gradient-to-br from-orange-50 to-white dark:from-orange-950/30 dark:to-slate-800">
               <p className="text-sm text-muted-foreground mb-1">#{competitor.googleRank} Competitor</p>
-              <p className="text-2xl font-bold text-orange-600">{competitor.overallScore.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{competitor.overallScore.toFixed(1)}</p>
               <p className="text-xs text-muted-foreground mt-1">{competitor.competitorName}</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-gray-50 border">
+          <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-800/50 border">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-900">Score Gap</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Score Gap</span>
               <Badge variant={scoreGap > 20 ? "destructive" : scoreGap > 10 ? "default" : "secondary"}>
                 {scoreGap > 0 ? `Behind by ${scoreGap.toFixed(1)} points` : `Ahead by ${Math.abs(scoreGap).toFixed(1)} points`}
               </Badge>
@@ -168,11 +168,11 @@ export function CompetitiveGapAnalysis({
                   : gap.yourValue > gap.competitorValue;
 
                 return (
-                  <div key={idx} className="p-4 rounded-lg border bg-white space-y-3">
+                  <div key={idx} className="p-4 rounded-lg border bg-white dark:bg-slate-800/50 space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         {gap.icon}
-                        <span className="font-medium text-gray-900">{gap.metric}</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{gap.metric}</span>
                       </div>
                       <Badge className={status.bg + " " + status.color}>{status.label}</Badge>
                     </div>
@@ -195,15 +195,15 @@ export function CompetitiveGapAnalysis({
                     <Progress value={Math.min(100, percentage)} className="h-2" />
 
                     {isBehind && (
-                      <div className="flex items-start gap-2 bg-blue-50 rounded p-3">
+                      <div className="flex items-start gap-2 bg-blue-50 dark:bg-blue-950/30 rounded p-3">
                         {gap.impact === "high" ? (
-                          <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
+                          <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                         ) : (
-                          <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+                          <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                         )}
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-blue-900">Action Needed</p>
-                          <p className="text-xs text-blue-700 mt-1">{gap.action}</p>
+                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Action Needed</p>
+                          <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">{gap.action}</p>
                         </div>
                         <Badge variant={gap.impact === "high" ? "default" : "secondary"} className="text-xs">
                           {gap.impact} impact
@@ -250,12 +250,12 @@ export function CompetitiveGapAnalysis({
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
+          <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-800">
             <div className="flex items-start gap-3">
-              <Target className="h-5 w-5 text-blue-600 mt-0.5" />
+              <Target className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-semibold text-blue-900 mb-2">Winning Strategy</h4>
-                <ul className="space-y-2 text-sm text-blue-800">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Winning Strategy</h4>
+                <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
                   <li className="flex gap-2">
                     <span className="font-semibold shrink-0">1.</span>
                     <span>

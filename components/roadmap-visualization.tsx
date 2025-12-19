@@ -82,10 +82,10 @@ export function RoadmapVisualization({
           const color = getPhaseColor(phase);
           const borderColor =
             phase.status === "completed"
-              ? "border-green-200 bg-green-50 shadow-sm"
+              ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 shadow-sm"
               : phase.status === "current"
-              ? "border-2 border-primary bg-primary/5 shadow-md"
-              : "border-gray-200 bg-white shadow-sm";
+              ? "border-2 border-primary bg-primary/5 dark:bg-primary/10 shadow-md"
+              : "border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800/50 shadow-sm";
 
           return (
             <Card key={phase.phase} className={borderColor}>

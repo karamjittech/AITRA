@@ -269,33 +269,33 @@ export function CompetitiveAnalysis({
         </CardHeader>
         <CardContent className="space-y-4">
           {contentGap > 0 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-yellow-200 bg-yellow-50">
-              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium text-yellow-900">Content Gap</p>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="font-medium text-yellow-900 dark:text-yellow-100">Content Gap</p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                   Need <strong>+{contentGap} words</strong> to match competitor content length
                 </p>
               </div>
             </div>
           )}
 
-          <div className="flex items-start gap-3 p-4 rounded-lg border border-red-200 bg-red-50">
-            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-3 p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-red-900">Authority Gap</p>
-              <p className="text-sm text-red-700 mt-1">
+              <p className="font-medium text-red-900 dark:text-red-100">Authority Gap</p>
+              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
                 Need <strong>+{authorityGap} backlinks</strong> to compete with their domain authority
               </p>
             </div>
           </div>
 
           {schemaGap.length > 0 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 bg-blue-50">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium text-blue-900">Schema Gap</p>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="font-medium text-blue-900 dark:text-blue-100">Schema Gap</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                   Missing: <strong>{schemaGap.join(", ")}</strong>
                 </p>
               </div>
@@ -303,11 +303,11 @@ export function CompetitiveAnalysis({
           )}
 
           {freshnessGap > 0 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50">
-              <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-800/50">
+              <AlertCircle className="h-5 w-5 text-gray-600 dark:text-gray-400 mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium text-gray-900">Freshness Gap</p>
-                <p className="text-sm text-gray-700 mt-1">
+                <p className="font-medium text-gray-900 dark:text-gray-100">Freshness Gap</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                   Competitor updated <strong>{freshnessGap} days ago</strong> - maintain regular
                   updates
                 </p>
