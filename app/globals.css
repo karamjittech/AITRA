@@ -86,4 +86,16 @@
     background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   }
+
+  .bg-page-gradient {
+    @apply bg-gradient-to-b from-gray-50 to-white dark:from-slate-950 dark:to-slate-900;
+  }
+
+  .bg-hero-gradient {
+    background: linear-gradient(to bottom, rgba(139, 92, 246, 0.1), transparent);
+  }
+
+  .dark .bg-hero-gradient {
+    background: linear-gradient(to bottom, rgba(139, 92, 246, 0.2), transparent);
+  }
 }
