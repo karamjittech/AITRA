@@ -257,55 +257,58 @@ export default function CodesManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">LTD Code Manager</h1>
-        <p className="text-slate-600 mt-1">Upload, manage, and revoke AppSumo redemption codes</p>
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-gray-100">LTD Code Manager</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-2 text-lg">Upload, manage, and revoke AppSumo redemption codes</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Codes</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Codes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Available</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.available}</div>
+            <div className="text-3xl font-bold text-green-700 dark:text-green-400">{stats.available}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Claimed</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Claimed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.claimed}</div>
+            <div className="text-3xl font-bold text-blue-700 dark:text-blue-400">{stats.claimed}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Revoked</CardTitle>
+            <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">Revoked</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.revoked}</div>
+            <div className="text-3xl font-bold text-red-700 dark:text-red-400">{stats.revoked}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bulk Upload Codes</CardTitle>
-          <p className="text-sm text-slate-600 mt-1">
+      <Card className="border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800/30 border-b dark:border-slate-700">
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <Upload className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            Bulk Upload Codes
+          </CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             Paste one code per line. Format: LTD-T1-XXXX, LTD-T2-XXXX, or LTD-T3-XXXX
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-3">
               <Textarea
@@ -313,7 +316,7 @@ export default function CodesManager() {
                 value={bulkCodes}
                 onChange={(e) => setBulkCodes(e.target.value)}
                 rows={5}
-                className="font-mono text-sm"
+                className="font-mono text-sm bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600"
               />
             </div>
             <div className="space-y-4">
@@ -333,10 +336,13 @@ export default function CodesManager() {
               <Button
                 onClick={handleBulkUpload}
                 disabled={uploading || !bulkCodes.trim()}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md"
               >
                 {uploading ? (
-                  <>Uploading...</>
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Uploading...
+                  </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
@@ -349,9 +355,9 @@ export default function CodesManager() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Codes</CardTitle>
+      <Card className="border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800/30 border-b dark:border-slate-700">
+          <CardTitle className="text-2xl">All Codes</CardTitle>
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <div className="flex-1">
               <div className="relative">
@@ -360,7 +366,7 @@ export default function CodesManager() {
                   placeholder="Search by code or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"
                 />
               </div>
             </div>
@@ -388,29 +394,29 @@ export default function CodesManager() {
             </Select>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="pt-6">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Claimed By</TableHead>
-                  <TableHead>Claimed At</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Code</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Tier</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Status</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Claimed By</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Claimed At</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCodes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-slate-500 dark:text-slate-400">
                       No codes found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredCodes.map((code) => (
-                    <TableRow key={code.id}>
+                    <TableRow key={code.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <TableCell className="font-mono text-sm">{code.code}</TableCell>
                       <TableCell>
                         <Badge variant="outline">Tier {code.tier}</Badge>

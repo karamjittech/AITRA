@@ -226,79 +226,82 @@ export default function UsersManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">User Manager</h1>
-        <p className="text-slate-600 mt-1">Search, manage, and support customer accounts</p>
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-gray-100">User Manager</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-2 text-lg">Search, manage, and support customer accounts</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/50 hover:shadow-lg transition-all duration-200">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Total Users</CardTitle>
+            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{users.length}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">LTD Customers</CardTitle>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800/50 hover:shadow-lg transition-all duration-200">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-purple-900 dark:text-purple-100">LTD Customers</CardTitle>
+            <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
               {users.filter((u) => u.is_lifetime_deal).length}
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Free Tier</CardTitle>
+        <Card className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-200">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Free Tier</CardTitle>
+            <Coins className="h-5 w-5 text-slate-600 dark:text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {users.filter((u) => !u.is_lifetime_deal).length}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Users</CardTitle>
+      <Card className="border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800/30 border-b dark:border-slate-700">
+          <CardTitle className="text-2xl">Search Users</CardTitle>
           <div className="relative mt-4">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <Input
               placeholder="Search by email or user ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
+              className="pl-9 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="pt-6">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Credits</TableHead>
-                  <TableHead>Limits</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Email</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Tier</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Credits</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Limits</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Joined</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-slate-500 dark:text-slate-400">
                       No users found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <TableCell className="font-medium">{user.email}</TableCell>
                       <TableCell>{getTierBadge(user.appsumo_tier, user.is_lifetime_deal)}</TableCell>
                       <TableCell>

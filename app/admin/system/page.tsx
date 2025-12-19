@@ -146,81 +146,85 @@ export default function SystemHealth() {
   const isHighCost = (stats?.estimatedCostToday || 0) > costThreshold;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">System Health</h1>
-          <p className="text-slate-600 mt-1">Monitor API usage, costs, and system performance</p>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-gray-100">System Health</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2 text-lg">Monitor API usage, costs, and system performance</p>
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="outline" className="text-sm bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
           <Clock className="h-3 w-3 mr-1" />
           Updated 1 min ago
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Credits Today</CardTitle>
-            <Activity className="h-4 w-4 text-slate-600" />
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Credits Today</CardTitle>
+            <div className="p-2.5 bg-blue-600 dark:bg-blue-700 rounded-lg shadow-md">
+              <Activity className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.creditsToday || 0}</div>
-            <p className="text-xs text-slate-600 mt-1">API calls made</p>
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats?.creditsToday || 0}</div>
+            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">API calls made</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={`bg-gradient-to-br ${isHighCost ? 'from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800/50' : 'from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800/50'} hover:shadow-lg transition-all duration-200`}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Cost Today</CardTitle>
-            <DollarSign className="h-4 w-4 text-amber-600" />
+            <CardTitle className={`text-sm font-medium ${isHighCost ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'}`}>Cost Today</CardTitle>
+            <div className={`p-2.5 ${isHighCost ? 'bg-red-600 dark:bg-red-700' : 'bg-amber-600 dark:bg-amber-700'} rounded-lg shadow-md`}>
+              <DollarSign className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className={`text-3xl font-bold ${isHighCost ? 'text-red-900 dark:text-red-100' : 'text-amber-900 dark:text-amber-100'}`}>
               ${(stats?.estimatedCostToday || 0).toFixed(2)}
             </div>
-            <p className="text-xs text-slate-600 mt-1">
-              {isHighCost ? (
-                <span className="text-red-600 font-medium">Above threshold!</span>
-              ) : (
-                "Within limits"
-              )}
+            <p className={`text-sm mt-1 ${isHighCost ? 'text-red-700 dark:text-red-300 font-semibold' : 'text-amber-700 dark:text-amber-300'}`}>
+              {isHighCost ? "Above threshold!" : "Within limits"}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Cost This Week</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Cost This Week</CardTitle>
+            <div className="p-2.5 bg-green-600 dark:bg-green-700 rounded-lg shadow-md">
+              <TrendingUp className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-green-900 dark:text-green-100">
               ${(stats?.estimatedCostWeek || 0).toFixed(2)}
             </div>
-            <p className="text-xs text-slate-600 mt-1">Last 7 days</p>
+            <p className="text-sm text-green-700 dark:text-green-300 mt-1">Last 7 days</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800/50 hover:shadow-lg transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Credits</CardTitle>
-            <Cpu className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium text-purple-900 dark:text-purple-100">Total Credits</CardTitle>
+            <div className="p-2.5 bg-purple-600 dark:bg-purple-700 rounded-lg shadow-md">
+              <Cpu className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
               {(stats?.totalCreditsUsed || 0).toLocaleString()}
             </div>
-            <p className="text-xs text-slate-600 mt-1">Lifetime usage</p>
+            <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">Lifetime usage</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader>
-            <CardTitle>System Components</CardTitle>
-            <p className="text-sm text-slate-600 mt-1">Health check of critical services</p>
+            <CardTitle className="text-2xl">System Components</CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Health check of critical services</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -307,10 +311,10 @@ export default function SystemHealth() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
           <CardHeader>
-            <CardTitle>Usage by Feature</CardTitle>
-            <p className="text-sm text-slate-600 mt-1">Credit consumption breakdown (7 days)</p>
+            <CardTitle className="text-2xl">Usage by Feature</CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Credit consumption breakdown (7 days)</p>
           </CardHeader>
           <CardContent>
             {stats?.usageByAction && stats.usageByAction.length > 0 ? (
@@ -340,28 +344,28 @@ export default function SystemHealth() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Credit Users</CardTitle>
-          <p className="text-sm text-slate-600 mt-1">
+      <Card className="border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800/30 border-b dark:border-slate-700">
+          <CardTitle className="text-2xl">Top Credit Users</CardTitle>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             Customers with highest credit consumption
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="pt-6">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Credits Used</TableHead>
-                  <TableHead>Status</TableHead>
+                <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Email</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Tier</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Credits Used</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {stats?.topUsers && stats.topUsers.length > 0 ? (
                   stats.topUsers.map((user, index) => (
-                    <TableRow key={`${user.email}-${index}`}>
+                    <TableRow key={`${user.email}-${index}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <TableCell className="font-medium">{user.email}</TableCell>
                       <TableCell>
                         <Badge variant="outline">Tier {user.tier}</Badge>
@@ -389,7 +393,7 @@ export default function SystemHealth() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={4} className="text-center py-8 text-slate-500 dark:text-slate-400">
                       No usage data available
                     </TableCell>
                   </TableRow>
@@ -401,15 +405,17 @@ export default function SystemHealth() {
       </Card>
 
       {isHighCost && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-300 dark:border-red-800 bg-gradient-to-r from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-red-900 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
+            <CardTitle className="text-red-900 dark:text-red-100 flex items-center gap-2">
+              <div className="p-2 bg-red-600 dark:bg-red-700 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-white" />
+              </div>
               Cost Alert
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-red-800">
+            <p className="text-sm text-red-800 dark:text-red-200">
               Daily cost has exceeded ${costThreshold}. Consider reviewing high-usage accounts or
               implementing rate limiting.
             </p>

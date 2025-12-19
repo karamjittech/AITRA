@@ -92,21 +92,21 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       <div className="flex h-screen overflow-hidden">
         <aside
           className={cn(
-            "bg-slate-900 text-white transition-all duration-300 flex flex-col",
+            "bg-slate-900 dark:bg-slate-950 text-white transition-all duration-300 flex flex-col border-r border-slate-700/50 backdrop-blur-sm",
             sidebarOpen ? "w-64" : "w-20"
           )}
         >
-          <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+          <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
             {sidebarOpen && (
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-red-600 rounded-lg">
+                <div className="p-2 bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-lg">
                   <Shield className="h-5 w-5" />
                 </div>
-                <span className="font-bold">Admin Panel</span>
+                <span className="font-bold text-lg">Admin Panel</span>
               </div>
             )}
             <Button
@@ -130,10 +130,10 @@ export default function AdminLayout({
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                         isActive
-                          ? "bg-blue-600 text-white"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white hover:translate-x-1"
                       )}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0" />
@@ -145,10 +145,10 @@ export default function AdminLayout({
             </ul>
           </nav>
 
-          <div className="p-4 border-t border-slate-700">
+          <div className="p-4 border-t border-slate-700/50">
             <Link
               href="/"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-200 hover:translate-x-1"
             >
               <ChevronLeft className="h-5 w-5 flex-shrink-0" />
               {sidebarOpen && <span>Back to App</span>}
