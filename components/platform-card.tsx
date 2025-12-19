@@ -74,42 +74,42 @@ export function PlatformCard({
       : "bg-red-500";
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
+    <Card className="border shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {platformIcon || <Bot className="h-5 w-5 text-muted-foreground" />}
-            <CardTitle className="text-xl">{platformName}</CardTitle>
+            <CardTitle className="text-xl font-bold">{platformName}</CardTitle>
           </div>
           <div className="text-right">
             <div className={`text-3xl font-bold ${scoreColorClass}`}>
               {overallScore}
             </div>
-            <div className="text-xs text-muted-foreground">out of 100</div>
+            <div className="text-xs text-muted-foreground">of 100</div>
           </div>
         </div>
-        <CardDescription className="text-sm italic">
+        <CardDescription className="text-sm text-muted-foreground mt-2">
           {preferenceProfile}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+      <CardContent className="space-y-5 flex-1">
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs font-medium text-gray-600 mb-1">
             <span>Overall Compatibility</span>
-            <span>{overallScore}%</span>
+            <span className={scoreColorClass}>{overallScore}%</span>
           </div>
-          <Progress value={overallScore} className={progressColorClass} />
+          <Progress value={overallScore} className="h-2.5" />
         </div>
 
-        <div className="space-y-3 pt-2">
+        <div className="space-y-4">
           {components.map((component, index) => (
             <div key={index} className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{component.name}</span>
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-sm font-medium text-gray-900">{component.name}</span>
                   {getStatusBadge(component.status)}
                 </div>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm font-semibold text-gray-600">
                   {component.score}/{component.maxScore}
                 </span>
               </div>
@@ -118,7 +118,7 @@ export function PlatformCard({
                 className="h-2"
               />
               {component.recommendation && (
-                <p className="text-xs text-muted-foreground pl-1">
+                <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
                   {component.recommendation}
                 </p>
               )}

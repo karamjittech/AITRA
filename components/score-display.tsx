@@ -29,14 +29,14 @@ export function ScoreDisplay({ score, label, maxScore, color = "green" }: ScoreD
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm font-medium text-gray-900">{label}</span>
         <span className={`text-sm font-bold ${getColorClasses()}`}>
           {animatedScore.toFixed(1)}/{maxScore}
         </span>
       </div>
-      <Progress value={percentage} className="h-2" />
+      <Progress value={percentage} className="h-2.5" />
     </div>
   );
 }
@@ -79,36 +79,30 @@ export function OverallScore({ score }: OverallScoreProps) {
     return "Needs Improvement";
   };
 
-  const getScoreBg = () => {
-    if (score >= 75) return "bg-green-50";
-    if (score >= 60) return "bg-yellow-50";
-    return "bg-red-50";
-  };
-
   const strokeDasharray = 2 * Math.PI * 70;
   const strokeDashoffset = strokeDasharray - (strokeDasharray * animatedScore) / 100;
 
   return (
-    <Card className={getScoreBg()}>
+    <Card className="border shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-8">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-48 h-48">
-            <svg className="transform -rotate-90 w-48 h-48">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-52 h-52">
+            <svg className="transform -rotate-90 w-52 h-52">
               <circle
-                cx="96"
-                cy="96"
+                cx="104"
+                cy="104"
                 r="70"
                 stroke="currentColor"
-                strokeWidth="12"
+                strokeWidth="10"
                 fill="none"
-                className="text-gray-200"
+                className="text-gray-100"
               />
               <circle
-                cx="96"
-                cy="96"
+                cx="104"
+                cy="104"
                 r="70"
                 stroke="currentColor"
-                strokeWidth="12"
+                strokeWidth="10"
                 fill="none"
                 strokeDasharray={strokeDasharray}
                 strokeDashoffset={strokeDashoffset}
@@ -117,15 +111,15 @@ export function OverallScore({ score }: OverallScoreProps) {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={`text-5xl font-bold ${getScoreColor()}`}>
+              <span className={`text-6xl font-bold ${getScoreColor()}`}>
                 {Math.round(animatedScore)}
               </span>
-              <span className="text-sm text-muted-foreground">out of 100</span>
+              <span className="text-xs text-muted-foreground mt-1">out of 100</span>
             </div>
           </div>
-          <div className="text-center">
-            <h3 className="text-2xl font-bold">AI Readiness Score</h3>
-            <p className={`text-lg font-semibold ${getScoreColor()}`}>
+          <div className="text-center space-y-1">
+            <h3 className="text-2xl font-bold text-gray-900">AI Readiness Score</h3>
+            <p className={`text-base font-medium ${getScoreColor()}`}>
               {getScoreLabel()}
             </p>
           </div>

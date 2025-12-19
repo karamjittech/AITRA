@@ -381,13 +381,13 @@ export function ResearchRecommendations({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
-        return "border-red-300 bg-red-50";
+        return "border-l-4 border-l-red-500 border border-gray-200 bg-white hover:shadow-md";
       case "high":
-        return "border-orange-300 bg-orange-50";
+        return "border-l-4 border-l-orange-500 border border-gray-200 bg-white hover:shadow-md";
       case "medium":
-        return "border-yellow-300 bg-yellow-50";
+        return "border-l-4 border-l-yellow-500 border border-gray-200 bg-white hover:shadow-md";
       default:
-        return "border-blue-300 bg-blue-50";
+        return "border-l-4 border-l-blue-500 border border-gray-200 bg-white hover:shadow-md";
     }
   };
 
@@ -414,7 +414,7 @@ export function ResearchRecommendations({
   };
 
   return (
-    <Card>
+    <Card className="border shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
@@ -439,9 +439,9 @@ export function ResearchRecommendations({
               open={expandedIds.has(rec.id)}
               onOpenChange={() => toggleExpanded(rec.id)}
             >
-              <div className={`rounded-lg border-2 ${getPriorityColor(rec.priority)}`}>
+              <div className={`rounded-lg transition-all duration-200 ${getPriorityColor(rec.priority)}`}>
                 <CollapsibleTrigger asChild>
-                  <div className="flex items-start gap-3 p-4 cursor-pointer hover:bg-white/50 transition-colors">
+                  <div className="flex items-start gap-3 p-4 cursor-pointer transition-colors">
                     {getPriorityIcon(rec.priority)}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">

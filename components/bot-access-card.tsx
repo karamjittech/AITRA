@@ -34,15 +34,15 @@ export function BotAccessCard({ botAccessData, scorePenalty, loading = false }: 
   const severityColor = getSeverityColor();
 
   return (
-    <Card className={`${blockedBots.length > 0 ? 'border-2 border-red-500' : ''}`}>
+    <Card className="border shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+            <Shield className={`h-5 w-5 ${blockedBots.length > 0 ? 'text-red-600' : 'text-green-600'}`} />
             <CardTitle>AI Crawler Access</CardTitle>
           </div>
           {scorePenalty > 0 && (
-            <Badge variant="destructive">-{scorePenalty} points</Badge>
+            <Badge variant="destructive" className="font-semibold">-{scorePenalty} points</Badge>
           )}
         </div>
         <CardDescription>

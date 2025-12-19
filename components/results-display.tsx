@@ -171,11 +171,11 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">Analysis Complete</h2>
-        <p className="text-muted-foreground">
-          Results for: <span className="font-medium">{analyzedUrl}</span>
+    <div className="w-full max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl font-bold text-gray-900">Analysis Complete</h2>
+        <p className="text-muted-foreground text-base">
+          Results for: <span className="font-semibold text-gray-900">{analyzedUrl}</span>
         </p>
       </div>
 
@@ -186,21 +186,21 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
           <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6 mt-6">
+        <TabsContent value="overview" className="space-y-8 mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <OverallScore score={scores.overallScore} />
         </div>
 
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="border shadow-sm h-full">
             <CardHeader>
               <CardTitle>Score Breakdown</CardTitle>
               <CardDescription>
                 Individual component scores contributing to your overall AI readiness
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <ScoreDisplay
                 score={scores.structureScore}
                 label="Structure Score"
@@ -266,7 +266,7 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
       <AEOScoreCard analysis={analysis} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="border shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -434,7 +434,7 @@ export function ResultsDisplay({ analysis, scores, platformScores, analyzedUrl, 
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border shadow-sm">
           <CardHeader>
             <CardTitle>Schema Markup</CardTitle>
             <CardDescription>

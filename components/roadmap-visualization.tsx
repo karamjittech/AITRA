@@ -51,7 +51,7 @@ export function RoadmapVisualization({
       </div>
 
       {currentPhaseData && (
-        <Card className="border-primary bg-primary/5">
+        <Card className="border-2 border-primary bg-primary/5 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
@@ -82,10 +82,10 @@ export function RoadmapVisualization({
           const color = getPhaseColor(phase);
           const borderColor =
             phase.status === "completed"
-              ? "border-green-200 bg-green-50"
+              ? "border-green-200 bg-green-50 shadow-sm"
               : phase.status === "current"
-              ? "border-primary bg-primary/5"
-              : "border-gray-200 bg-gray-50";
+              ? "border-2 border-primary bg-primary/5 shadow-md"
+              : "border-gray-200 bg-white shadow-sm";
 
           return (
             <Card key={phase.phase} className={borderColor}>

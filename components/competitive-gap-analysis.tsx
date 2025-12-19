@@ -111,7 +111,7 @@ export function CompetitiveGapAnalysis({
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />

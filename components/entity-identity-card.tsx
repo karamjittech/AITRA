@@ -57,14 +57,14 @@ export function EntityIdentityCard({
   const needsImprovement = entityIdentityScore < maxScore;
 
   return (
-    <Card>
+    <Card className="border shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {getEntityIcon()}
-            <CardTitle className="text-xl">Entity Identity</CardTitle>
+            <CardTitle>Entity Identity</CardTitle>
           </div>
-          <Badge variant={entityType === "none" ? "destructive" : "default"}>
+          <Badge variant={entityType === "none" ? "destructive" : "default"} className="font-semibold">
             {getEntityLabel()}
           </Badge>
         </div>

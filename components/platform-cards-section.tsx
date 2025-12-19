@@ -108,9 +108,9 @@ export function PlatformCardsSection({ platformScores, analysis }: PlatformCards
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">Platform-Specific Analysis</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Platform-Specific Analysis</h2>
         <p className="text-muted-foreground">
           See how your content aligns with each AI model's preferences
         </p>

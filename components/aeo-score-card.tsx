@@ -41,7 +41,7 @@ export function AEOScoreCard({ analysis }: AEOScoreCardProps) {
   const aeoPercentage = (totalAEOScore / maxAEOScore) * 100;
 
   return (
-    <Card className="border-2">
+    <Card className="border shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export function AEOScoreCard({ analysis }: AEOScoreCardProps) {
           </div>
           <Badge
             variant={aeoPercentage >= 75 ? "default" : aeoPercentage >= 50 ? "secondary" : "destructive"}
-            className="text-lg px-4 py-1"
+            className="text-base px-3 py-1 font-semibold"
           >
             {totalAEOScore}/{maxAEOScore}
           </Badge>

@@ -62,7 +62,7 @@ export function CompetitiveAnalysis({
         </AlertDescription>
       </Alert>
 
-      <Card>
+      <Card className="border shadow-sm">
         <CardHeader>
           <CardTitle>Head-to-Head Comparison</CardTitle>
           <CardDescription>
