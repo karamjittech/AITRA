@@ -15,6 +15,7 @@ import { SOVGapInsights } from "@/components/sov-gap-insights";
 import { SOVExportButton } from "@/components/sov-export-button";
 import { BarChart3, TrendingUp, Target, Clock, AlertCircle, Shield } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
+import { getEdgeFunctionUrl, getSupabaseHeaders } from "@/lib/config";
 
 export const dynamic = 'force-dynamic';
 
@@ -120,13 +121,10 @@ export default function AnalyticsPage() {
       startDate.setDate(startDate.getDate() - days);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/calculate-share-of-voice`,
+        getEdgeFunctionUrl('calculate-share-of-voice'),
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-          },
+          headers: getSupabaseHeaders(),
           body: JSON.stringify({
             websiteId,
             dateRange: {

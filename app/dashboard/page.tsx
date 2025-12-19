@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AnalysisResult, AnalysisError } from "@/lib/types";
 import { AlertCircle, BarChart3 } from "lucide-react";
+import { getEdgeFunctionUrl, getSupabaseHeaders } from "@/lib/config";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,17 +30,11 @@ function DashboardContent() {
     setAnalyzedUrl(url);
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/analyze-page`,
+        getEdgeFunctionUrl('analyze-page'),
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseAnonKey}`,
-          },
+          headers: getSupabaseHeaders(),
           body: JSON.stringify({
             url: url,
             userId: "00000000-0000-0000-0000-000000000001",
